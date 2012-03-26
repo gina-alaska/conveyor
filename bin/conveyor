@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+$: << File.expand_path("../", File.dirname(__FILE__))
+
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default, :cli)
+
+require 'thor'
+require 'fssm'
+require 'whenever'
+require 'active_model'
+require 'lib/belt'
+
+class Conveyor < Thor
+  def self.source_root
+    File.expand_path("..", File.dirname(__FILE__))
+  end
+
+  CONF_D = File.join(source_root, 'conf.d')
+  Belt.root = CONF_D
+end
+
+Dir.glob('commands/*.rb') do |f|
+  require f
+end
+
+Conveyor.start

@@ -14,8 +14,10 @@ module Conveyor; class WorkerCmd < Thor
     end
   end
   
-  desc "monitor", "Monitor directories"
-  def monitor
+  desc "watch", "Watch for changes in directories"
+  def watch
+    say "Starting up the watchers", :green
+
     mon = FSSM::Monitor.new(:directories => true)
     Belt.all.each do |b|
       mon.path b.from do
@@ -31,7 +33,7 @@ module Conveyor; class WorkerCmd < Thor
       end
     end
     
-    say "Starting FSSM Monitor", :green
+    say "Watchers have been started", :green
     mon.run
   end
 end; end

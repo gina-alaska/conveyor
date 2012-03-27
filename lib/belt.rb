@@ -31,7 +31,7 @@ class BasicBelt
   end
 
   def to_conf
-    Belt.to_conf(attributes["name"])
+    self.class.to_conf(attributes["name"])
   end
 
   def save
@@ -41,28 +41,36 @@ class BasicBelt
   end
 
   class << self
-    def root=(path)
-      @root = path
+    def config_root=(path)
+      @config_root = path
     end
 
-    def root
-      @root || ''
+    def config_root
+      @config_root || ''
+    end
+
+    def all(glob = '*.yml')
+      items = []
+      Dir.glob(File.join(config_root, glob)) do |f|
+        items << load(f)
+      end
+      items
     end
 
     def where(name)
-      Belt.load(to_conf(name)) 
+      load(to_conf(name)) 
     end
 
     def load(filename)
       if File.exists? filename
-        Belt.new(YAML.load_file(filename)) 
+        new(YAML.load_file(filename)) 
       else
         raise "File not found #{filename}"
       end
     end
 
     def to_conf(name)
-      File.join(root, "#{name.underscore}.yml")
+      File.join(config_root, "#{name.underscore}.yml")
     end
 
     def define_fields(fields)

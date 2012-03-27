@@ -1,0 +1,3 @@
+---
+worker_defs: ./workers
+

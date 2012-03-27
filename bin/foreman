@@ -3,23 +3,36 @@
 require 'rubygems'
 require 'singleton'
 require 'fssm'
+require 'yaml'
 
-class Worker
+class Match
   attr_accessor :filename
 
   def initialize(glob, &block)
-    @glob = glob
+    @glob = escape_glob(glob)
     @block = block
   end
 
+  # Causes a reload of the worker scripts
   def reload!
-    puts "RELOADING!"
+    say "RELOADING!"
     Foreman.instance.reload!
   end
+  
+  # Forward on the msg to the foreman
+  def say(msg)
+    Foreman.instance.say(msg)
+  end
+  
+  # TODO wrap this in some sort of popen3 call 
+  def run(cmd)
+    say `#{cmd}`
+  end
 
-  def run(path, file)
+  def start(path, file)
     @filename = File.join(path, file)
-    if filename =~ @glob
+    
+    if @glob =~ filename
       @source = filename
       instance_exec(filename, &@block) 
     end
@@ -39,7 +52,7 @@ class Worker
     end
 
     if @source && @destination
-      puts "Copying #{@source.inspect} to #{@destination}"
+      say "Copying #{@source.inspect} to #{@destination}"
       FileUtils.mkdir_p(@destination)
       FileUtils.cp_r(@source, @destination)
     end
@@ -51,49 +64,101 @@ class Worker
   end
   alias_method :from, :source
 
-  def to(name)
+  def destination(name)
     raise "Could not find #{name}" unless File.exists?(name)
     @destination = name
   end
+  alias_method :to, :destination
 
   def filename(args = nil)
     @filename
   end
+  
+  protected
+  
+  def escape_glob(glob)
+    if glob.class == String 
+      Regexp.new(Regexp.escape(glob))
+    else 
+      glob
+    end
+  end  
 end
 
-class Foreman
+# Does not persist, do not use any class variables 
+class Watch
   include Singleton
 
-  def initialize
-    @worker_defs = File.expand_path('../workers/', File.dirname(__FILE__))
-  end
-
   def match(glob, &block) 
-    @current << Worker.new(glob, &block)
+    Match.new(glob, &block)
+  end
+  
+  def extension(glob)
+    Regexp.new("\.#{glob}$")
+  end
+  
+  def method_missing(method, value = nil)
+    return method.to_s
+  end
+  
+  def say(msg)
+    Foreman.instance.say(msg)
+  end
+end
+
+# Handle the incoming watch requests and assign the workers
+class Foreman
+  include Singleton
+  
+  def initialize
+    @config = read_configs
+    @worker_defs = ARGV.shift
+    @worker_defs ||= @config["worker_defs"]
+  end
+  
+  def read_configs
+    if File.exists?('.foreman')
+      YAML.load(File.open('.foreman'))
+    elsif File.exists?('~/.foreman')
+      YAML.load(File.open('~/.foreman'))
+    else
+      { "worker_defs" => File.expand_path('../workers/', File.dirname(__FILE__)) }
+    end
+  end
+  
+  def say(msg)
+    puts(msg)
+    # this should pass it on to the logger
+  end
+  
+  def log(msg)
+    # Do the work of passing it on to some logger object handler
   end
 
   def watch(name, &block)
+    name = File.expand_path(name)
+    
     raise "Directory #{name} not found" unless File.directory? name
     if @directories.include? name
-      puts '**************************'
-      puts "Already watching #{name}!!"
-      puts 'Ignoring second watch'
-      puts '**************************'
+      say '**************************'
+      say "Already watching #{name}!!"
+      say 'Ignoring second watch'
+      say '**************************'
       return
     else
-      puts "Watching #{name}"
+      say "Watching #{name}"
     end
 
     @directories[name] ||= []
     @current = @directories[name]
 
-    instance_eval(&block)
+    @current << Watch.instance.instance_eval(&block)
   end
 
   def monitor
     reload!
 
-    puts "Starting Monitor"
+    say "Starting Monitor"
     @fssm = FSSM::Monitor.new
 
     @directories.keys.each do |dir|
@@ -108,19 +173,19 @@ class Foreman
       end
     end
     
-    puts "Started Monitor"
+    say "Started Monitor"
     @running = true
     @fssm.run
   end
 
   def dispath(path, filename)
     @directories[path].each do |worker|
-      worker.run(path, filename)
+      worker.start(path, filename)
     end
   end
 
   def reload!
-    puts "Loading workers"
+    say "Loading workers from #{@worker_defs}"
     @directories = {}
     Dir.glob(File.join(@worker_defs, '*.worker')) do |file|
       load file
@@ -132,9 +197,4 @@ def watch(name, &block)
   Foreman.instance.watch(name, &block)
 end
 
-begin
-  Foreman.instance.monitor
-rescue Interrupt
-  puts "testing"
-  retry
-end
+Foreman.instance.monitor

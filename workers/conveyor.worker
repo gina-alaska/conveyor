@@ -1,5 +1,5 @@
-watch File.dirname(File.expand_path(__FILE__)) do
-  match /worker$/ do
+watch File.dirname(__FILE__) do
+  match extension worker do
     reload!
   end
 end

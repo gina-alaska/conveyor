@@ -1,8 +1,9 @@
 watch '/home/wfisher/data_test/incoming' do
 
-  match /md5$/ do # |filename|
+  match md5$ do # |filename|
     copy to '/home/wfisher/data_test/barrow_webcams'
   end
+  
 =begin
   match /md5$/ do # |filename|
     copy like(filename), '/home/wfisher/data_test/barrow_webcams'
@@ -10,8 +11,9 @@ watch '/home/wfisher/data_test/incoming' do
 
   match /md5$/ do # |filename|
     source like(filename)
-    to '/home/wfisher/data_test/barrow_webcams'
+    destination '/home/wfisher/data_test/barrow_webcams'
     copy
   end
 =end
+
 end

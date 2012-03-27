@@ -9,11 +9,11 @@ Installation
     git clone https://github.com/gina-alaska/conveyor.git
     cd conveyor
     bundle install
-    thor list # see the commands available
-
+ 
 Usage
 -----
 
     thor list                # list available commands
+    thor help [command]      # show help for the given command
     thor belt list           # list the currently active belts
     thor worker monitor      # tell the workers to start monitoring directories!

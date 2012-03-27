@@ -107,7 +107,7 @@ class Watch
 end
 
 # Handle the incoming watch requests and assign the workers
-class Foreman
+class Conveyor
   include Singleton
   
   def initialize
@@ -197,4 +197,4 @@ def watch(name, &block)
   Foreman.instance.watch(name, &block)
 end
 
-Foreman.instance.monitor
+Conveyor.instance.monitor

@@ -16,4 +16,4 @@ Usage
     thor list                # list available commands
     thor help [command]      # show help for the given command
     thor belt list           # list the currently active belts
-    thor worker monitor      # tell the workers to start monitoring directories!
+    thor worker watch        # tell the workers to start watching directories!

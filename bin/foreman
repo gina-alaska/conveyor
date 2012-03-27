@@ -1,0 +1,140 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'singleton'
+require 'fssm'
+
+class Worker
+  attr_accessor :filename
+
+  def initialize(glob, &block)
+    @glob = glob
+    @block = block
+  end
+
+  def reload!
+    puts "RELOADING!"
+    Foreman.instance.reload!
+  end
+
+  def run(path, file)
+    @filename = File.join(path, file)
+    if filename =~ @glob
+      @source = filename
+      instance_exec(filename, &@block) 
+    end
+  end
+
+  def like(name)
+    dir = File.dirname(name)
+    @source = Dir.glob(File.join(dir, File.basename(name, '.*') + '.*'))
+  end
+
+  def copy(*args)
+    if(args.count == 1) 
+      @destination = args.first
+    elsif args.count > 1
+      @destination = args.pop
+      @source = args.flatten
+    end
+
+    if @source && @destination
+      puts "Copying #{@source.inspect} to #{@destination}"
+      FileUtils.mkdir_p(@destination)
+      FileUtils.cp_r(@source, @destination)
+    end
+  end
+
+  def source(name=[])
+    @source = name
+    @destination
+  end
+  alias_method :from, :source
+
+  def to(name)
+    raise "Could not fine #{name}" unless File.exists?(name)
+    @destination = name
+  end
+
+  def filename(args = nil)
+    @filename
+  end
+end
+
+class Foreman
+  include Singleton
+
+  def initialize
+    @worker_defs = File.expand_path('../workers/', File.dirname(__FILE__))
+  end
+
+  def match(glob, &block) 
+    @current << Worker.new(glob, &block)
+  end
+
+  def watch(name, &block)
+    raise "Directory #{name} not found" unless File.directory? name
+    if @directories.include? name
+      puts '**************************'
+      puts "Already watching #{name}!!"
+      puts 'Ignoring second watch'
+      puts '**************************'
+      return
+    else
+      puts "Watching #{name}"
+    end
+
+    @directories[name] ||= []
+    @current = @directories[name]
+
+    instance_eval(&block)
+  end
+
+  def monitor
+    reload!
+
+    puts "Starting Monitor"
+    @fssm = FSSM::Monitor.new
+
+    @directories.keys.each do |dir|
+      @fssm.path(dir) do
+        update do |path,filename| 
+          Foreman.instance.dispath(path, filename)  
+        end
+        create do |path,filename| 
+          Foreman.instance.dispath(path, filename)  
+        end
+
+      end
+    end
+    
+    puts "Started Monitor"
+    @running = true
+    @fssm.run
+  end
+
+  def dispath(path, filename)
+    @directories[path].each do |worker|
+      worker.run(path, filename)
+    end
+  end
+
+  def reload!
+    puts "Loading workers"
+    @directories = {}
+    Dir.glob(File.join(@worker_defs, '*.worker')) do |file|
+      load file
+    end
+  end
+end
+
+def watch(name, &block)
+  Foreman.instance.watch(name, &block)
+end
+
+begin
+  Foreman.instance.monitor
+rescue Interrupt
+  puts "testing"
+  retry
+end

@@ -52,7 +52,7 @@ class Worker
   alias_method :from, :source
 
   def to(name)
-    raise "Could not fine #{name}" unless File.exists?(name)
+    raise "Could not find #{name}" unless File.exists?(name)
     @destination = name
   end
 

@@ -35,6 +35,7 @@ class BasicBelt
   end
 
   def save
+    
     File.open(to_conf, 'w') do |fp|
       fp << attributes.to_yaml
     end
@@ -73,7 +74,7 @@ class BasicBelt
       File.join(config_root, "#{name.underscore}.yml")
     end
 
-    def define_fields(fields)
+    def define_fields(*fields)
       fields.each do |f|
         define_method f do           # def name
           read_attribute(f)          #   read_attribute(:name)
@@ -88,7 +89,7 @@ class BasicBelt
 end
 
 class Belt < BasicBelt
-  define_fields [:name, :from, :to]
+  define_fields :name, :from, :to, :type
   validates_presence_of :name
 
   def from=(value)

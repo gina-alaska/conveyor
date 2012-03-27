@@ -19,31 +19,15 @@ module Conveyor; class WorkerCmd < Thor
     mon = FSSM::Monitor.new(:directories => true)
     Belt.all.each do |b|
       mon.path b.from do
-        
         update do |path,file,type| 
-          case type
-          when :file
-            Worker::Copy.new(path, file, b) do
-              diff
-              run
-            end
-          when :directory
-          end
+          Worker::BarrowWebcam.new(path, file, b).run if type == :file
         end
         
         delete { |path,file,type| puts "deleted #{path} :: #{file} :: #{type}" }
         
         create do |path,file,type| 
-          case type
-          when :file
-            Worker::Copy.new(path, file, b) do
-              diff
-              run
-            end
-          when :directory
-          end
+          Worker::BarrowWebcam.new(path, file, b).run if type == :file
         end
-        
       end
     end
     

@@ -1,3 +1,7 @@
+require 'rubygems'
+require 'active_support/core_ext'
+require 'open3'
+
 class Match
   attr_accessor :filename
 
@@ -13,13 +17,16 @@ class Match
   end
   
   # Forward on the msg to the Conveyor
-  def say(msg)
-    Conveyor.instance.say(msg)
+  def say(msg, options={})
+    Conveyor.instance.say(msg, options)
   end
   
   # TODO wrap this in some sort of popen3 call 
   def run(cmd)
-    say `#{cmd}`
+    output,error,status = Open3.capture3(cmd)
+    say cmd, :color => (status.success? ? :green : :red)
+    say output unless output.length == 0
+    say error unless status.success?
   end
 
   def start(path, file)
@@ -50,16 +57,29 @@ class Match
       FileUtils.cp_r(@source, @destination)
     end
   end
+  
+  def scp(*args)
+    if(args.count == 1) 
+      @destination = args.first
+    elsif args.count > 1
+      @destination = args.pop
+      @source = args.flatten
+    end
 
-  def source(name=[])
-    @source = name
-    @destination
+    if @source && @destination
+      run "scp #{source.join(' ')} #{destination}"
+    end    
+  end
+
+  def source(name=nil)
+    @source = name unless name.nil?
+    Array.wrap(@source)
   end
   alias_method :from, :source
 
-  def destination(name)
-    raise "Could not find #{name}" unless File.exists?(name)
-    @destination = name
+  def destination(name=nil)
+    @destination = name unless name.nil?
+    @destination
   end
   alias_method :to, :destination
 

@@ -16,7 +16,7 @@ class Watch
     return method.to_s
   end
   
-  def say(msg)
-    Conveyor.instance.say(msg)
+  def say(msg, options={})
+    Conveyor.instance.say(msg, options)
   end
 end

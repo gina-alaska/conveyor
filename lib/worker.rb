@@ -25,19 +25,19 @@ class Worker
   def run(cmd)
     output,error,status = Open3.capture3(cmd)
     say cmd, :color => (status.success? ? :green : :red)
-    say output unless output.length == 0
+    say output.chomp unless output.chomp.length == 0
     say error unless status.success?
   end
 
   def start(path, file)
-    say "Starting worker in #{path}", :color => :green
     @filename = File.join(path, file)
     
     if @glob =~ filename
+      say "Starting worker in #{path}", :color => :green
       @source = filename
       instance_exec(filename, &@block) 
+      say "Completed worker in #{path}", :color => :green
     end
-    say "Completed worker in #{path}", :color => :green
   end
 
   def like(name)

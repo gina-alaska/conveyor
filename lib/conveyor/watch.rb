@@ -9,7 +9,7 @@ module Conveyor
     def match(glob, &block) 
       Worker.new(glob, &block)
     end
-  
+    
     def extension(glob)
       Regexp.new("\.#{glob}$")
     end

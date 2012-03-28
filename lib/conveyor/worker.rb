@@ -30,14 +30,15 @@ module Conveyor
     end
 
     def start(path, file)
-      say "Starting worker for #{path}", :color => :green
       @filename = File.join(path, file)
     
       if @glob =~ filename
         @source = filename
+        
+        say "Starting worker for #{path}", :color => :green
         instance_exec(filename, &@block) 
+        say "Completed worker for #{path}", :color => :green
       end
-      say "Completed worker for #{path}", :color => :green
     end
 
     def like(name)
@@ -87,6 +88,10 @@ module Conveyor
 
     def filename(args = nil)
       @filename
+    end
+    
+    def chdir(dir, &block)
+      Dir.chdir(File.expand_path(dir), &block)
     end
   
     protected

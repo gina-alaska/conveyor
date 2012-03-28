@@ -8,10 +8,30 @@ module Conveyor
           options[:tab] ||= 0
 
           format = "\t"*options[:tab]
-          msg = msg.join("\n#{format}") if msg.class == Array
-          format << '%s'
-
-          puts sprintf(format, msg).color(options[:color])
+          format << '[%s] %s'
+          if msg.class == Array
+            msg.each do |m|
+              puts sprintf(format, Time.now, m).color(options[:color])              
+            end
+          else
+            puts sprintf(format, Time.now, msg).color(options[:color])              
+          end
+        end
+        
+        def warning(*msg)
+          options = msg.extract_options!
+          options[:color] ||= :yellow
+          
+          say('*** WARNING ***'.bright, options)
+          say(*msg, options)
+        end
+                
+        def error(*msg)
+          options = msg.extract_options!
+          options[:color] ||= :red
+          
+          say('*** ERROR ***'.bright, options)
+          say(*msg, options)
         end
       end
     end

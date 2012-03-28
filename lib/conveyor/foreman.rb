@@ -33,7 +33,7 @@ module Conveyor
                 "Ignoring additional watch for #{name} in #{@current_worker}"
         return
       else
-        say "Watching #{name}", :color => :green
+        say "Watching #{name}"
       end
 
       @directories[name] ||= []
@@ -66,7 +66,7 @@ module Conveyor
         end
       end
     
-      say "Started Monitor"
+      say "Started Monitor", :color => :green
       @running = true
       @fssm.run
     end

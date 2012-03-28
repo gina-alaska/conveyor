@@ -74,7 +74,12 @@ class Conveyor
 
   def monitor
     reload!
-
+    
+    if FSSM::Support.usable_backend == 'Polling'
+      say "*** WARNING ***", :color => :yellow
+      say "Using #{FSSM::Support.usable_backend} to watch for changes"
+    end
+    
     say "Starting Monitor"
     @fssm = FSSM::Monitor.new
 
@@ -86,7 +91,6 @@ class Conveyor
         create do |path,filename| 
           Conveyor.instance.dispath(dir, path, filename)  
         end
-
       end
     end
     

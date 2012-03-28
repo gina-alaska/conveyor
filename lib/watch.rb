@@ -5,7 +5,7 @@ class Watch
   include Singleton
 
   def match(glob, &block) 
-    Match.new(glob, &block)
+    Worker.new(glob, &block)
   end
   
   def extension(glob)

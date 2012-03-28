@@ -2,7 +2,7 @@ require 'rubygems'
 require 'active_support/core_ext'
 require 'open3'
 
-class Match
+class Worker
   attr_accessor :filename
 
   def initialize(glob, &block)
@@ -30,12 +30,14 @@ class Match
   end
 
   def start(path, file)
+    say "Starting worker in #{path}", :color => :green
     @filename = File.join(path, file)
     
     if @glob =~ filename
       @source = filename
       instance_exec(filename, &@block) 
     end
+    say "Completed worker in #{path}", :color => :green
   end
 
   def like(name)

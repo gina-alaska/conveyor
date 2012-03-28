@@ -5,7 +5,7 @@ require 'fssm'
 require 'yaml'
 require 'rainbow'
 require 'watch'
-require 'match'
+require 'worker'
 
 # Handle the incoming watch requests and assign the workers
 class Conveyor
@@ -68,6 +68,7 @@ class Conveyor
     @directories[name] ||= []
     @current = @directories[name]
 
+    # make a new worker and added it to the queue
     @current << Watch.instance.instance_eval(&block)
   end
 
@@ -80,10 +81,10 @@ class Conveyor
     @directories.keys.each do |dir|
       @fssm.path(dir) do
         update do |path,filename| 
-          Conveyor.instance.dispath(path, filename)  
+          Conveyor.instance.dispath(dir, path, filename)  
         end
         create do |path,filename| 
-          Conveyor.instance.dispath(path, filename)  
+          Conveyor.instance.dispath(dir, path, filename)  
         end
 
       end
@@ -94,8 +95,8 @@ class Conveyor
     @fssm.run
   end
 
-  def dispath(path, filename)
-    @directories[path].each do |worker|
+  def dispath(watch_dir, path, filename)
+    @directories[watch_dir].each do |worker|
       worker.start(path, filename)
     end
   end

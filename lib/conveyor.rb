@@ -1,6 +1,9 @@
+require 'rubygems'
+require 'active_support/core_ext'
 require 'singleton'
 require 'fssm'
 require 'yaml'
+require 'rainbow'
 require 'watch'
 require 'match'
 
@@ -24,13 +27,29 @@ class Conveyor
     end
   end
   
-  def say(msg)
-    puts(msg)
+  def say(*msg)
+    options = msg.extract_options!
+    console(msg, options)
     # this should pass it on to the logger
+  end
+  
+  def console(msg, options = {})
+    options[:color] ||= :default
+    options[:tab] ||= 0
+    
+    format = "\t"*options[:tab]
+    msg = msg.join("\n#{format}") if msg.class == Array
+    format << '%s'
+    
+    puts sprintf(format, msg).color(options[:color])
   end
   
   def log(msg)
     # Do the work of passing it on to some logger object handler
+  end
+  
+  def quiet
+    @config["quiet"]
   end
 
   def watch(name, &block)
@@ -38,13 +57,12 @@ class Conveyor
     
     raise "Directory #{name} not found" unless File.directory? name
     if @directories.include? name
-      say '**************************'
-      say "Already watching #{name}!!"
-      say 'Ignoring second watch'
-      say '**************************'
+      say '*** WARNING ***'.bright, :color => :yellow
+      say "Already watching #{name}!",
+          "Ignoring second watch in #{@current_worker}", :color => :yellow
       return
     else
-      say "Watching #{name}"
+      say "Watching #{name}", :color => :green
     end
 
     @directories[name] ||= []
@@ -86,7 +104,14 @@ class Conveyor
     say "Loading workers from #{@worker_defs}"
     @directories = {}
     Dir.glob(File.join(@worker_defs, '*.worker')) do |file|
-      load file
+      begin
+        @current_worker = file
+        load file
+      rescue => e
+        say e.message.capitalize, :color => :red
+        say e.backtrace, :color => :red, :tab => 1
+        say "Error loading #{file}, skipping", :color => :red
+      end
     end
   end
 end

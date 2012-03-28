@@ -23,7 +23,7 @@ module Conveyor
     def run(cmd)
       output,error,status = Open3.capture3(cmd)
       say cmd, :color => (status.success? ? :green : :red)
-      say output unless output.length == 0
+      say output.chomp unless output.chomp.length == 0
       say error unless status.success?
     end
 

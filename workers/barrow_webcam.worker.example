@@ -1,0 +1,17 @@
+watch '/home/wfisher/data_test/incoming' do
+
+  match extension md5 do # |filename|
+    copy to '/home/wfisher/data_test/barrow_webcams'
+  end
+  
+  match extension md5 do # |filename|
+    copy like(filename), '/home/wfisher/data_test/barrow_webcams'
+  end
+
+  match extension md5 do # |filename|
+    source like(filename)
+    destination '/home/wfisher/data_test/barrow_webcams'
+    copy
+  end
+
+end

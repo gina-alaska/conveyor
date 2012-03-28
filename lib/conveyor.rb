@@ -15,10 +15,10 @@ class Conveyor
   end
   
   def read_configs
-    if File.exists?('.Conveyor')
-      YAML.load(File.open('.Conveyor'))
-    elsif File.exists?('~/.Conveyor')
-      YAML.load(File.open('~/.Conveyor'))
+    if File.exists?('.conveyor')
+      YAML.load(File.open('.conveyor'))
+    elsif File.exists?('~/.conveyor')
+      YAML.load(File.open('~/.conveyor'))
     else
       { "worker_defs" => File.expand_path('../workers/', File.dirname(__FILE__)) }
     end

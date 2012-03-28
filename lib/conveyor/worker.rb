@@ -25,6 +25,8 @@ module Conveyor
       say cmd, :color => (status.success? ? :green : :red)
       say output.chomp unless output.chomp.length == 0
       say error unless status.success?
+      
+      return status.success?
     end
 
     def start(path, file)

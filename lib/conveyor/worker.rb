@@ -11,7 +11,6 @@ module Conveyor
     attr_reader :worker_def
 
     def initialize(worker_file, glob, &block)
-      warning worker_file
       @worker_def = worker_file
       @glob = escape_glob(glob)
       @block = block

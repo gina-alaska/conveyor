@@ -30,7 +30,6 @@ module Conveyor
       opts = msg.extract_options!
       unless msg.flatten.empty?
         @status.fail!
-        puts msg.inspect
         msg.unshift("Error encountered in #{worker_def}")
         super(*msg, opts)
       end
@@ -65,7 +64,7 @@ module Conveyor
           if @status.success?
             say "Completed workers for #{worker_def}::#{path}", :color => :green
           else
-            error "Error(s) encountered in #{worker_def}::#{path}"
+            say "Error(s) encountered in #{worker_def}::#{path}", :color => :red
           end
           send_notifications
         end
@@ -100,6 +99,15 @@ module Conveyor
         verified_copy(source, destination)
       end      
     end
+    
+    def move(src=[], dest = nil)
+      destination = dest unless dest.nil?
+      source = src unless src.empty?
+      
+      if source && destination
+        verified_move(source, destination)
+      end
+    end
   
     def scp(src, dest)
       run "scp #{Array.wrap(src).join(' ')} #{dest}"
@@ -115,7 +123,7 @@ module Conveyor
   
     protected
     
-    def create_dirs_for_copy(src, dest)
+    def create_dirs_for_cmd(src, dest)
       if src.is_a?(Array) || Array.wrap(src).count > 1 || dest.last == ?/
         mkdir(dest)
       else
@@ -123,19 +131,34 @@ module Conveyor
       end
     end
     
-    def verified_copy(src, dest)
-      create_dirs_for_copy(src, dest)
+    def verified_cmd(cmd, src, dest, &block)
+      create_dirs_for_cmd(src, dest)
       dest = File.expand_path(dest)
       
       Array.wrap(src).each do |s|
         # say cmd
         # return error "Tried to copy a directory #{s}, only files are allowed" if File.directory? s
         
-        run "cp #{s} #{dest}"
+        run "#{cmd} #{s} #{dest}"
         sync
-        @status.fail! unless verify_copy(s, dest)
+        
+        if block_given?
+          result = yield(s, dest)
+          @status.fail! unless result
+        end
       end
-      @status.success?
+    end
+    
+    def verified_move(src, dest)
+      verified_cmd(:mv, src, dest) do |src,dest|
+        verify_move(src,dest)
+      end
+    end
+        
+    def verified_copy(src, dest)
+      verified_cmd(:cp, src, dest) do |src,dest|
+        verify_copy(src,dest)
+      end
     end
     
     def verify_copy(src, dest)
@@ -143,6 +166,14 @@ module Conveyor
         File.exists?(File.join(dest, File.basename(src)))
       else
         File.exists?(dest)
+      end
+    end
+    
+    def verify_move(src, dest)
+      if File.directory? dest
+        File.exists?(File.join(dest, File.basename(src))) && !File.exists?(src)
+      else
+        File.exists?(dest) && !File.exists?(src)
       end
     end
       

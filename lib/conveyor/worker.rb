@@ -59,11 +59,9 @@ module Conveyor
 
         say "Copying #{@source.inspect} to #{@destination}"
         if @source.class == Array || Array.wrap(@source).count > 1
-          warning "mkdir #{@destination}"
           FileUtils.mkdir_p(@destination)
           FileUtils.cp_r(@source, @destination)
         else
-          warning "mkdir #{File.dirname(@destination)}"
           FileUtils.mkdir_p(File.dirname(@destination))
           FileUtils.cp(@source, @destination)
         end

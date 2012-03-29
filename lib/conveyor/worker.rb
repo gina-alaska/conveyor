@@ -45,26 +45,23 @@ module Conveyor
       dir = File.dirname(name)
       @source = Dir.glob(File.join(dir, File.basename(name, '.*') + '.*'))
     end
+    
+    def mkdir(dir)
+      FileUtils.mkdir_p(File.expand_path(dir))      
+    end
 
-    def copy(*args)
-      if(args.count == 1) 
-        @destination = args.first
-      elsif args.count > 1
-        @destination = args.pop
-        @source = args.flatten
-      end
+    def copy(src = [], dest = nil)
+      @destination = dest unless dest.nil?
+      @source = src unless src.empty?
       
       if @source && @destination
-        @destination = File.expand_path(@destination)
-
         say "Copying #{@source.inspect} to #{@destination}"
-        if @source.class == Array || Array.wrap(@source).count > 1
-          FileUtils.mkdir_p(@destination)
-          FileUtils.cp_r(@source, @destination)
+        if @source.is_a?(Array) || Array.wrap(@source).count > 1 || @destination.last == ?/
+          mkdir(@destination)
         else
-          FileUtils.mkdir_p(File.dirname(@destination))
-          FileUtils.cp(@source, @destination)
+          mkdir(File.dirname(@destination))
         end
+        _copy(@source, @destination)
       end
     end
   
@@ -77,7 +74,6 @@ module Conveyor
       end
 
       if @source && @destination
-        
         run "scp #{Array.wrap(source).join(' ')} #{destination}"
       end    
     end
@@ -102,7 +98,11 @@ module Conveyor
     end
   
     protected
-  
+    
+    def _copy(src, dest)
+      FileUtils.cp_r(src, File.expand_path(dest))
+    end
+      
     def escape_glob(glob)
       if glob.class == String 
         Regexp.new(Regexp.escape(glob))

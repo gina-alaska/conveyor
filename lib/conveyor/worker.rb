@@ -18,14 +18,23 @@ module Conveyor
       say "RELOADING!"
       Foreman.instance.reload!
     end
+    
+    def sync
+      run 'sync', :quiet => true
+    end
   
-    def run(cmd)
-      output,error,status = Open3.capture3(cmd)
-      say cmd, :color => (status.success? ? :green : :red)
-      say output.chomp unless output.chomp.length == 0
-      say error unless status.success?
-      
-      return status.success?
+    def run(*cmd)
+      opts = cmd.extract_options!
+      begin
+        output,error,status = Open3.capture3(Array.wrap(cmd).join(' '))
+        say cmd.join(' '), :color => (status.success? ? :green : :red) unless (opts[:quiet])
+        say output.chomp unless output.chomp.length == 0
+        say error unless status.success?
+
+        return status.success?
+      rescue => e
+        error e.class, e.message, e.backtrace.join("\n")
+      end
     end
 
     def start(path, file)
@@ -44,6 +53,8 @@ module Conveyor
     end
     
     def delete(files)
+      # sync before we delete
+      sync
       Array.wrap(files).each do |f|
         say "removing #{f}"
         FileUtils.rm(f)
@@ -97,6 +108,7 @@ module Conveyor
         end
         
         run "cp #{s} #{dest}"
+        sync
         success &= verify_copy(s, dest)
       end
       

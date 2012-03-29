@@ -1,2 +1,3 @@
 conf.d/*.yml
 *.swp
+workers/*.worker

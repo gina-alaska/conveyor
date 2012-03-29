@@ -96,9 +96,7 @@ module Conveyor
           return false
         end
         
-        say "copying #{s} -> #{dest}"
-        
-        FileUtils.cp(s, dest)
+        run "cp #{s} #{dest}"
         success &= verify_copy(s, dest)
       end
       

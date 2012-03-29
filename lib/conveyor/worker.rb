@@ -26,10 +26,10 @@ module Conveyor
     def run(*cmd)
       opts = cmd.extract_options!
       begin
-        output,error,status = Open3.capture3(Array.wrap(cmd).join(' '))
-        say cmd.join(' '), :color => (status.success? ? :green : :red) unless (opts[:quiet])
+        say cmd.join(' ') unless opts[:quiet]
+        output,err,status = Open3.capture3(Array.wrap(cmd).join(' '))
         say output.chomp unless output.chomp.length == 0
-        say error unless status.success?
+        error err unless status.success?
 
         return status.success?
       rescue => e

@@ -19,7 +19,6 @@ module Conveyor
       Foreman.instance.reload!
     end
   
-    # TODO wrap this in some sort of popen3 call 
     def run(cmd)
       output,error,status = Open3.capture3(cmd)
       say cmd, :color => (status.success? ? :green : :red)
@@ -33,9 +32,7 @@ module Conveyor
       @filename = File.join(path, file)
     
       if @glob =~ filename
-        @source = filename
-        
-        say "Starting worker for #{path}", :color => :green
+        say "Starting worker for #{path}"
         instance_exec(filename, &@block) 
         say "Completed worker for #{path}", :color => :green
       end
@@ -43,7 +40,14 @@ module Conveyor
 
     def like(name)
       dir = File.dirname(name)
-      @source = Dir.glob(File.join(dir, File.basename(name, '.*') + '.*'))
+      Dir.glob(File.join(dir, File.basename(name, '.*') + '.*'))
+    end
+    
+    def delete(files)
+      Array.wrap(files).each do |f|
+        say "removing #{f}"
+        FileUtils.rm(f)
+      end
     end
     
     def mkdir(dir)
@@ -51,45 +55,19 @@ module Conveyor
     end
 
     def copy(src = [], dest = nil)
-      @destination = dest unless dest.nil?
-      @source = src unless src.empty?
+      destination = dest unless dest.nil?
+      source = src unless src.empty?
       
-      if @source && @destination
-        say "Copying #{@source.inspect} to #{@destination}"
-        if @source.is_a?(Array) || Array.wrap(@source).count > 1 || @destination.last == ?/
-          mkdir(@destination)
-        else
-          mkdir(File.dirname(@destination))
-        end
-        _copy(@source, @destination)
-      end
+      if source && destination
+        verified_copy(source, destination)
+      end      
     end
   
-    def scp(*args)
-      if(args.count == 1) 
-        @destination = args.first
-      elsif args.count > 1
-        @destination = args.pop
-        @source = args.flatten
-      end
-
-      if @source && @destination
-        run "scp #{Array.wrap(source).join(' ')} #{destination}"
-      end    
+    def scp(src, dest)
+      run "scp #{Array.wrap(src).join(' ')} #{dest}"
     end
 
-    def source(name=nil)
-      @source = name unless name.nil?
-    end
-    alias_method :from, :source
-
-    def destination(name=nil)
-      @destination = name unless name.nil?
-      @destination
-    end
-    alias_method :to, :destination
-
-    def filename(args = nil)
+    def filename
       @filename
     end
     
@@ -99,8 +77,40 @@ module Conveyor
   
     protected
     
-    def _copy(src, dest)
-      FileUtils.cp_r(src, File.expand_path(dest))
+    def create_dirs_for_copy(src, dest)
+      if src.is_a?(Array) || Array.wrap(src).count > 1 || dest.last == ?/
+        mkdir(dest)
+      else
+        mkdir(File.dirname(dest))
+      end
+    end
+    
+    def verified_copy(src, dest)
+      create_dirs_for_copy(src, dest)
+      dest = File.expand_path(dest)
+      
+      success = true
+      Array.wrap(src).each do |s|
+        if File.directory? s
+          error "Tried to copy a directory #{s}, only files are allowed"
+          return false
+        end
+        
+        say "copying #{s} -> #{dest}"
+        
+        FileUtils.cp(s, dest)
+        success &= verify_copy(s, dest)
+      end
+      
+      success
+    end
+    
+    def verify_copy(src, dest)
+      if File.directory? dest
+        File.exists?(File.join(dest, File.basename(src)))
+      else
+        File.exists?(dest)
+      end
     end
       
     def escape_glob(glob)

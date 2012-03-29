@@ -11,12 +11,17 @@ module Conveyor
         end
         
         def error(*msg)
+          @msg_queue ||= []
           options = msg.extract_options!
 
-          msg = msg.join("\n") if msg.class == Array
-          
+          msg =  msg.join("\n") if msg.class == Array
+          @msg_queue << msg
+        end
+        
+        def mail
+          return if @msg_queue.nil? || @msg_queue.empty?
           puts "Sending email to #{Conveyor::Foreman.instance.notify_list}"
-          puts msg
+          puts @msg_queue
         end
       end
     end

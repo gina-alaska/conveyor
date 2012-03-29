@@ -7,31 +7,47 @@ module Conveyor
     include Conveyor::Output
     
     attr_accessor :filename
+    attr_reader :status
+    attr_reader :worker_def
 
-    def initialize(glob, &block)
+    def initialize(worker_file, glob, &block)
+      warning worker_file
+      @worker_def = worker_file
       @glob = escape_glob(glob)
       @block = block
     end
 
     # Causes a reload of the worker scripts
     def reload!
-      say "RELOADING!"
       Foreman.instance.reload!
+      @status.success!
     end
     
     def sync
       run 'sync', :quiet => true
     end
-  
+    
+    def error(*msg)
+      opts = msg.extract_options!
+      unless msg.flatten.empty?
+        @status.fail!
+        puts msg.inspect
+        msg.unshift("Error encountered in #{worker_def}")
+        super(*msg, opts)
+      end
+      @status.success?
+    end
+    
     def run(*cmd)
       opts = cmd.extract_options!
       begin
         say cmd.join(' ') unless opts[:quiet]
-        output,err,status = Open3.capture3(Array.wrap(cmd).join(' '))
+        output,err,thr = Open3.capture3(Array.wrap(cmd).join(' '))
         say output.chomp unless output.chomp.length == 0
-        error err unless status.success?
-
-        return status.success?
+        error "Error running: `#{cmd.join(' ')}`", err.chomp unless thr.success?
+        @status.fail! unless thr.success?
+        
+        return thr.success?
       rescue => e
         error e.class, e.message, e.backtrace.join("\n")
       end
@@ -41,9 +57,19 @@ module Conveyor
       @filename = File.join(path, file)
     
       if @glob =~ filename
-        say "Starting worker for #{path}"
-        instance_exec(filename, &@block) 
-        say "Completed worker for #{path}", :color => :green
+        @status = Conveyor::Status.new(path)
+        begin
+          say "Starting worker for #{worker_def}::#{path}"
+          instance_exec(filename, &@block) 
+        ensure
+          # Check status and send any errors we collected
+          if @status.success?
+            say "Completed workers for #{worker_def}::#{path}", :color => :green
+          else
+            error "Error(s) encountered in #{worker_def}::#{path}"
+          end
+          send_notifications
+        end
       end
     end
 
@@ -58,11 +84,13 @@ module Conveyor
       Array.wrap(files).each do |f|
         say "removing #{f}"
         FileUtils.rm(f)
+        error "#{f} wasn't removed" if File.exists?(f)
       end
     end
     
     def mkdir(dir)
       FileUtils.mkdir_p(File.expand_path(dir))      
+      @status.fail! unless File.exists?(File.expand_path(dir))
     end
 
     def copy(src = [], dest = nil)
@@ -100,19 +128,15 @@ module Conveyor
       create_dirs_for_copy(src, dest)
       dest = File.expand_path(dest)
       
-      success = true
       Array.wrap(src).each do |s|
-        if File.directory? s
-          error "Tried to copy a directory #{s}, only files are allowed"
-          return false
-        end
+        # say cmd
+        # return error "Tried to copy a directory #{s}, only files are allowed" if File.directory? s
         
         run "cp #{s} #{dest}"
         sync
-        success &= verify_copy(s, dest)
+        @status.fail! unless verify_copy(s, dest)
       end
-      
-      success
+      @status.success?
     end
     
     def verify_copy(src, dest)

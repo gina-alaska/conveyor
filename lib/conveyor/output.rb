@@ -20,6 +20,10 @@ module Conveyor
       Email.send(type, *msg)
     end
     
+    def send_notifications
+      Conveyor::Output::Email.mail
+    end
+    
     def notify(*emails)
       Conveyor::Foreman.instance.notify_list << emails
     end

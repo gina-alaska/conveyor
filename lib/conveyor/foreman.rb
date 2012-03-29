@@ -19,10 +19,6 @@ module Conveyor
         { "worker_defs" => File.expand_path('../workers/', File.dirname(__FILE__)) }
       end
     end
-  
-    def quiet
-      @config["quiet"]
-    end
 
     def watch(name, &block)
       name = File.expand_path(name)
@@ -39,8 +35,10 @@ module Conveyor
       @directories[name] ||= []
       @current_directory = @directories[name]
 
-      # make a new worker and added it to the queue
-      @current_directory << Watch.instance.instance_eval(&block)
+      # make a new belt and added it to the conveyor
+      belt = Belt.new(@current_worker)
+      belt.instance_eval(&block)
+      @current_directory << belt
     end
     
     def notify_list
@@ -75,8 +73,8 @@ module Conveyor
       # Skip directories we are no longer watching
       return if @directories[watch_dir].nil?
       
-      @directories[watch_dir].each do |worker|
-        worker.start(path, filename)
+      @directories[watch_dir].each do |belt|
+        belt.worker.start(path, filename)
       end
     end
 
@@ -87,11 +85,11 @@ module Conveyor
       say "Loading workers from #{@worker_defs}"      
       Dir.glob(File.join(@worker_defs, '*.worker')) do |file|
         begin
-          @current_worker = file
-          load file
+          @current_worker = File.expand_path(file)
+          load @current_worker
         rescue => e
           error [
-            "Error loading #{file}, skipping", 
+            "Error loading #{@current_worker}, skipping", 
             e.message.capitalize, 
             e.backtrace
           ].flatten

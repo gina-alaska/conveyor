@@ -21,16 +21,14 @@ module Conveyor
         def warning(*msg)
           options = msg.extract_options!
           options[:color] ||= :yellow
-          
-          say('*** WARNING ***'.bright, options)
+          msg.flatten!
           say(*msg, options)
         end
                 
         def error(*msg)
           options = msg.extract_options!
           options[:color] ||= :red
-          
-          say('*** ERROR ***'.bright, options)
+          msg.flatten!
           say(*msg, options)
         end
       end

@@ -8,8 +8,9 @@ require 'rainbow'
 module Conveyor
   autoload :Output,   'conveyor/output'
   autoload :Foreman,  'conveyor/foreman'
-  autoload :Watch,    'conveyor/watch'
+  autoload :Belt,     'conveyor/belt'
   autoload :Worker,   'conveyor/worker'
+  autoload :Status,   'conveyor/status'
   
   def self.start
     Foreman.instance.monitor

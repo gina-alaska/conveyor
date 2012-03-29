@@ -53,11 +53,20 @@ module Conveyor
         @destination = args.pop
         @source = args.flatten
       end
-
+      
       if @source && @destination
+        @destination = File.expand_path(@destination)
+
         say "Copying #{@source.inspect} to #{@destination}"
-        FileUtils.mkdir_p(@destination)
-        FileUtils.cp_r(@source, @destination)
+        if @source.class == Array || Array.wrap(@source).count > 1
+          warning "mkdir #{@destination}"
+          FileUtils.mkdir_p(@destination)
+          FileUtils.cp_r(@source, @destination)
+        else
+          warning "mkdir #{File.dirname(@destination)}"
+          FileUtils.mkdir_p(File.dirname(@destination))
+          FileUtils.cp(@source, @destination)
+        end
       end
     end
   
@@ -70,13 +79,13 @@ module Conveyor
       end
 
       if @source && @destination
-        run "scp #{source.join(' ')} #{destination}"
+        
+        run "scp #{Array.wrap(source).join(' ')} #{destination}"
       end    
     end
 
     def source(name=nil)
       @source = name unless name.nil?
-      Array.wrap(@source)
     end
     alias_method :from, :source
 

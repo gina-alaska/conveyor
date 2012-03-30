@@ -17,6 +17,6 @@ module Conveyor
   end
 end
 
-def watch(name, &block)
-  Conveyor::Foreman.instance.watch(name, &block)
+def watch(*args, &block)
+  Conveyor::Foreman.instance.watch(*args, &block)
 end

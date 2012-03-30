@@ -20,8 +20,9 @@ module Conveyor
       end
     end
 
-    def watch(name, &block)
-      name = File.expand_path(name)
+    def watch(*args, &block)
+      opts = args.extract_options!
+      name = File.expand_path(args.first)
     
       raise "Directory #{name} not found" unless File.directory? name
       if @directories.include? name
@@ -36,7 +37,7 @@ module Conveyor
       @current_directory = @directories[name]
 
       # make a new belt and added it to the conveyor
-      belt = Belt.new(@current_worker)
+      belt = Belt.new(@current_worker, opts)
       belt.instance_eval(&block)
       @current_directory << belt
     end
@@ -56,10 +57,10 @@ module Conveyor
       @directories.keys.each do |watch_dir|
         @fssm.path(watch_dir) do
           update do |path,filename| 
-            Foreman.instance.dispath(watch_dir, path, filename)  
+            Foreman.instance.dispatch(watch_dir, path, filename, :update)  
           end
           create do |path,filename| 
-            Foreman.instance.dispath(watch_dir, path, filename)  
+            Foreman.instance.dispatch(watch_dir, path, filename, :create)  
           end
         end
       end
@@ -69,12 +70,12 @@ module Conveyor
       @fssm.run
     end
 
-    def dispath(watch_dir, path, filename)
+    def dispatch(watch_dir, path, filename, event)
       # Skip directories we are no longer watching
       return if @directories[watch_dir].nil?
       
       @directories[watch_dir].each do |belt|
-        belt.worker.start(path, filename)
+        belt.dispatch(path, filename, event)
       end
     end
 

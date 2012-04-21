@@ -2,34 +2,66 @@ module Conveyor
   # Does not persist, do not use any class variables 
   class Belt
     include Conveyor::Output
+
+    attr_reader :command_file
     
-    attr_reader :worker_def
-    attr_reader :worker
-    
-    def initialize(worker_def, opts = {})
-      @opts = opts
-      @opts[:only] ||= [:update, :create]
-      @opts[:only] = Array.wrap(opts[:only])
-      
-      @worker_def = worker_def
+    def initialize(watch_path, command_file)#, opts = {})
+      # @opts = opts
+      # @opts[:only] ||= [:update, :create]
+      # @opts[:only] = Array.wrap(opts[:only])
+      @work_dir = watch_path
+      @command_file = command_file
     end
 
-    def match(glob, &block) 
-      @worker = Worker.new(worker_def, glob, &block)
+    def reload!
+      warning "Reloading workers!"
+      Forman.instance.load!
+    end
+
+    def watch(*args, &block)
+      opts = args.extract_options!
+      path = File.expand_path(args.shift)
+
+      if File.fnmatch(path, @work_dir)
+        instance_eval(&block) 
+      end
+    end
+
+    def match(glob, &block)
+      puts glob
+      if File.fnmatch(glob, @current_file)
+        say "Starting worker for #{@current_file}"
+        Worker.new(@work_dir).start(@current_file, &block)
+      end
     end
     
     def extension(glob)
-      Regexp.new("\.#{glob}$")
+      "*.#{glob}"
+    end
+
+    def any
+      '*'
     end
   
     def method_missing(method, value = nil)
       return method.to_s
     end
     
-    def dispatch(path, file, event)
-      if @opts[:only].include? event.to_sym
-        @worker.start(path, file)
+    def start(files)
+      files.each do |file|
+        @current_file = file
+        self.instance_eval File.read(@command_file)
       end
     end
+
+    private
+
+    def escape_glob(glob)
+      if glob.class == String 
+        Regexp.new(glob)
+      else 
+        glob
+      end
+    end  
   end
 end

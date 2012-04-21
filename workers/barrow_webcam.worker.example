@@ -13,5 +13,4 @@ watch '/home/wfisher/data_test/incoming' do
     destination '/home/wfisher/data_test/barrow_webcams'
     copy
   end
-
 end

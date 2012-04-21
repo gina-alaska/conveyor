@@ -10,15 +10,15 @@ module Conveyor
     attr_reader :status
     attr_reader :worker_def
 
-    def initialize(worker_file, glob, &block)
+    def initialize(worker_file)
       @worker_def = worker_file
-      @glob = escape_glob(glob)
-      @block = block
+      # @glob = escape_glob(glob)
     end
 
     # Causes a reload of the worker scripts
     def reload!
-      Foreman.instance.reload!
+      warning "Reloading workers!"
+      Foreman.instance.load!
       @status.success!
     end
     
@@ -51,23 +51,19 @@ module Conveyor
       end
     end
 
-    def start(path, file)
-      @filename = File.join(path, file)
-    
-      if @glob =~ filename
-        @status = Conveyor::Status.new(path)
-        begin
-          say "Starting worker for #{worker_def}::#{path}"
-          instance_exec(filename, &@block) 
-        ensure
-          # Check status and send any errors we collected
-          if @status.success?
-            say "Completed workers for #{worker_def}::#{path}", :color => :green
-          else
-            say "Error(s) encountered in #{worker_def}::#{path}", :color => :red
-          end
-          send_notifications
+    def start(file, &block)
+      @filename = file
+      @status = Conveyor::Status.new(file)
+      begin
+        instance_exec(file, &block) 
+      ensure
+        #Check status and send any errors we collected
+        if @status.success?
+          say "Completed workers for #{file}", :color => :green
+        else
+          say "Error(s) encountered in #{file}", :color => :red
         end
+        send_notifications
       end
     end
 
@@ -176,13 +172,5 @@ module Conveyor
         File.exists?(dest) && !File.exists?(src)
       end
     end
-      
-    def escape_glob(glob)
-      if glob.class == String 
-        Regexp.new(Regexp.escape(glob))
-      else 
-        glob
-      end
-    end  
   end
 end

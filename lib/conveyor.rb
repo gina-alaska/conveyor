@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'active_support/core_ext'
 require 'singleton'
-require 'fssm'
+require 'listen'
 require 'yaml'
 require 'rainbow'
 
@@ -13,7 +13,7 @@ module Conveyor
   autoload :Status,   'conveyor/status'
   
   def self.start
-    Foreman.instance.monitor
+    Foreman.instance.start_monitor
   end
 end
 

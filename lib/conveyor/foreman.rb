@@ -5,6 +5,8 @@ module Conveyor
     include Conveyor::Output
   
     def initialize
+      loglvl(:debug)
+
       @listeners = []
       @config = read_configs
       @workers = {}
@@ -12,6 +14,13 @@ module Conveyor
       @worker_defs ||= @config["worker_defs"]
     end
 
+    def logfile
+      File.expand_path(@config["logfile"])
+    end
+
+    def name
+      'Foreman'
+    end
 
     def workers
       @worker_defs
@@ -23,7 +32,10 @@ module Conveyor
       elsif File.exists?('~/.conveyor')
         YAML.load(File.open('~/.conveyor'))
       else
-        { "worker_defs" => File.expand_path('.workers', Dir.pwd) }
+        { 
+          "worker_defs" => File.expand_path('.workers', Dir.pwd),
+          "logfile" => './log/conveyor.log'
+        }
       end
     end
 
@@ -63,25 +75,25 @@ module Conveyor
     def start_monitor
       load!
       @workers.each do |k, listener| 
-        say "Watching #{k}"
+        info "Watching #{k}"
         listener.start(false) 
       end
 
-      say "Waiting for files..."
+      info "Waiting for files..."
       loop do
         sleep 1
       end
 
-      say "Stopping Monitor", :color => :green
+      info "Stopping Monitor", :color => :green
     end
 
     def load!
-      @workers.each { |dir,l| say "Stopping #{dir} listener"; l.stop }
+      @workers.each { |dir,l| info "Stopping #{dir} listener"; l.stop }
 
       @workers = {}
       @notify_list = []
       
-      say "Loading workers from #{@worker_defs}"      
+      info "Loading workers from #{@worker_defs}"      
       Dir.glob(File.join(@worker_defs, '*.worker')) do |file|
         begin
           @current_worker = File.expand_path(file)

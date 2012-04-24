@@ -4,7 +4,7 @@ module Conveyor
     attr_accessor :errors
     attr_reader :path
     
-    def initialize(path)
+    def initialize(path = nil)
       reset!(path)
     end
     

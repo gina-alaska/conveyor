@@ -10,16 +10,22 @@ module Conveyor
     attr_reader :status
     attr_reader :worker_def
 
-    def initialize(worker_file)
-      @worker_def = worker_file
+    def initialize(worker_def, log = MSGLVLS[:debug])
+      @loglvl = log
+      @worker_def = worker_def
+      @notify = []
       # @glob = escape_glob(glob)
     end
 
-    # Causes a reload of the worker scripts
-    def reload!
-      warning "Reloading workers!"
-      Foreman.instance.load!
-      @status.success!
+    def name(value=nil)
+      @name = value unless value.nil?
+      @name ||= File.basename(worker_def)
+      @name
+    end
+
+    def logfile
+      dir = File.dirname(worker_def)
+      File.expand_path(File.basename(worker_def, '.worker') + '.log', dir)
     end
     
     def sync
@@ -39,9 +45,9 @@ module Conveyor
     def run(*cmd)
       opts = cmd.extract_options!
       begin
-        say cmd.join(' ') unless opts[:quiet]
+        info cmd.join(' ') unless opts[:quiet]
         output,err,thr = Open3.capture3(Array.wrap(cmd).join(' '))
-        say output.chomp unless output.chomp.length == 0
+        info output.chomp unless output.chomp.length == 0
         error "Error running: `#{cmd.join(' ')}`", err.chomp unless thr.success?
         @status.fail! unless thr.success?
         
@@ -54,14 +60,15 @@ module Conveyor
     def start(file, &block)
       @filename = file
       @status = Conveyor::Status.new(file)
+      info "Starting worker for #{file}", :color => :green
       begin
         instance_exec(file, &block) 
       ensure
         #Check status and send any errors we collected
         if @status.success?
-          say "Completed workers for #{file}", :color => :green
+          info "Completed workers for #{file}", :color => :green
         else
-          say "Error(s) encountered in #{file}", :color => :red
+          error "Error(s) encountered in #{file}", :color => :red
         end
         send_notifications
       end
@@ -76,7 +83,7 @@ module Conveyor
       # sync before we delete
       sync
       Array.wrap(files).each do |f|
-        say "removing #{f}"
+        info "removing #{f}"
         FileUtils.rm(f)
         error "#{f} wasn't removed" if File.exists?(f)
       end

@@ -1,3 +1,5 @@
 conf.d/*.yml
 *.swp
 workers/*.worker
+log/*
+*.log

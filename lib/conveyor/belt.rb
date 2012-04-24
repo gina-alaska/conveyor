@@ -6,9 +6,6 @@ module Conveyor
     attr_reader :command_file
     
     def initialize(watch_path, command_file)#, opts = {})
-      # @opts = opts
-      # @opts[:only] ||= [:update, :create]
-      # @opts[:only] = Array.wrap(opts[:only])
       @work_dir = watch_path
       @command_file = command_file
     end
@@ -28,10 +25,8 @@ module Conveyor
     end
 
     def match(glob, &block)
-      puts glob
       if File.fnmatch(glob, @current_file)
-        say "Starting worker for #{@current_file}"
-        Worker.new(@work_dir).start(@current_file, &block)
+        Worker.new(@command_file, @loglvl).start(@current_file, &block)
       end
     end
     
@@ -52,6 +47,9 @@ module Conveyor
         @current_file = file
         self.instance_eval File.read(@command_file)
       end
+    rescue => e
+      puts e.message
+      puts e.backtrace
     end
 
     private

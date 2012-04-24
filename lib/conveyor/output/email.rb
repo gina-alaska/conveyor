@@ -5,6 +5,12 @@ module Conveyor
         def say(*msg)
           # Do nothing
         end
+        alias_method :info, :say
+        alias_method :debug, :say
+
+        def reset!
+          @msg_queue = []
+        end
         
         def warning(*msg)
           # Do nothing
@@ -22,6 +28,7 @@ module Conveyor
           return if @msg_queue.nil? || @msg_queue.empty?
           puts "Sending email to #{Conveyor::Foreman.instance.notify_list}"
           puts @msg_queue
+          reset!
         end
       end
     end

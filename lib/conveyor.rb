@@ -4,6 +4,7 @@ require 'singleton'
 require 'listen'
 require 'yaml'
 require 'rainbow'
+require 'readline'
 
 module Conveyor
   autoload :Output,   'conveyor/output'
@@ -11,6 +12,7 @@ module Conveyor
   autoload :Belt,     'conveyor/belt'
   autoload :Worker,   'conveyor/worker'
   autoload :Status,   'conveyor/status'
+  autoload :Input, 		'conveyor/input'
   
   def self.start
     Foreman.instance.start_monitor

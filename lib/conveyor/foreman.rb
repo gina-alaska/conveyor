@@ -4,10 +4,10 @@ module Conveyor
     include Singleton
     include Conveyor::Output
   
+    attr_accessor :workers
     def initialize
       loglvl(:debug)
 
-      @listeners = []
       @config = read_configs
       @workers = {}
       @worker_defs = ARGV.shift
@@ -21,10 +21,6 @@ module Conveyor
     def name
       'Foreman'
     end
-
-    def workers
-      @worker_defs
-    end    
   
     def read_configs
       if File.exists?('.conveyor')
@@ -80,9 +76,7 @@ module Conveyor
       end
 
       info "Waiting for files..."
-      loop do
-        sleep 1
-      end
+      Conveyor::Input.listen
 
       info "Stopping Monitor", :color => :green
     end

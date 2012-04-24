@@ -18,6 +18,8 @@ module Conveyor
 
 			def handle(line)
 				cmd = line.split(/\s+/)
+        return if cmd.empty?
+
 				if Commands.respond_to? cmd.first
 					Commands.send(cmd.shift, cmd.join(' '))
 				else

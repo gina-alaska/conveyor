@@ -5,6 +5,7 @@ require 'listen'
 require 'yaml'
 require 'rainbow'
 require 'readline'
+require 'fileutils'
 
 module Conveyor
   autoload :Output,   'conveyor/output'

@@ -10,6 +10,7 @@ module Conveyor
       @command_file = command_file
       @files = {}
       @opts = {}
+      @mutex = Mutex.new
     end
 
     def reload!
@@ -27,8 +28,10 @@ module Conveyor
     end
 
     def touch(files)
-      files.each do |file|
-        @files[file] = Time.now
+      @mutex.synchronize do
+        files.each do |f|
+          @files[f] = Time.now
+        end
       end
     end
 
@@ -51,11 +54,13 @@ module Conveyor
     end
     
     def check
-      @files.each do |file, last_touched|
-        if Time.now - last_touched > (@opts[:latency] || 10)
-          @current_file = file
-          self.instance_eval File.read(@command_file)
-          @files.delete(file)
+      @mutex.synchronize do
+        @files.each do |file, last_touched|
+          if Time.now - last_touched > (@opts[:latency] || 10)
+            @files.delete(file)
+            @current_file = file
+            self.instance_eval File.read(@command_file)
+          end
         end
       end
     rescue => e

@@ -19,7 +19,7 @@ module Conveyor
     end
 
     def watch(*args, &block)
-      @opts = args.extract_options!
+      opts = args.extract_options!
       path = File.expand_path(args.shift)
 
       if File.fnmatch(path, @work_dir)
@@ -56,7 +56,7 @@ module Conveyor
     def check
       @mutex.synchronize do
         @files.each do |file, last_touched|
-          if Time.now - last_touched > (@opts[:latency] || 10)
+          if Time.now - last_touched > 10
             @files.delete(file)
             @current_file = file
             self.instance_eval File.read(@command_file)

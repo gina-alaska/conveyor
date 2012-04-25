@@ -48,8 +48,15 @@ module Conveyor
         info cmd.join(' ') unless opts[:quiet]
         output,err,thr = Open3.capture3(Array.wrap(cmd).join(' '))
         info output.chomp unless output.chomp.length == 0
-        error "Error running: `#{cmd.join(' ')}`", err.chomp unless thr.success?
-        @status.fail! unless thr.success?
+				if thr.success?
+					if err.chomp.length > 0
+						warning "Error output recieved, but no error code recieved"
+						warning err.chomp
+					end
+				else
+        	error "Error running: `#{cmd.join(' ')}`", err.chomp 
+        	@status.fail!
+				end
         
         return thr.success?
       rescue => e

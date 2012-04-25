@@ -1,3 +1,9 @@
+#!/usr/bin/env ruby
+$: << File.expand_path('../lib', File.dirname(__FILE__))
+
+require 'rubygems'
+#require 'bundler/setup'
+require 'conveyor'
 require 'rubygems'
 require 'active_support/core_ext'
 require 'singleton'
@@ -23,3 +29,5 @@ end
 def watch(*args, &block)
   Conveyor::Foreman.instance.watch(*args, &block)
 end
+
+Conveyor.start

@@ -4,7 +4,7 @@ require 'singleton'
 require 'listen'
 require 'yaml'
 require 'rainbow'
-require 'readline'
+require 'rb-readline'
 require 'fileutils'
 
 module Conveyor

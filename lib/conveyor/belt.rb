@@ -8,6 +8,8 @@ module Conveyor
     def initialize(watch_path, command_file)#, opts = {})
       @work_dir = watch_path
       @command_file = command_file
+      @files = {}
+      @opts = {}
     end
 
     def reload!
@@ -16,11 +18,17 @@ module Conveyor
     end
 
     def watch(*args, &block)
-      opts = args.extract_options!
+      @opts = args.extract_options!
       path = File.expand_path(args.shift)
 
       if File.fnmatch(path, @work_dir)
         instance_eval(&block) 
+      end
+    end
+
+    def touch(files)
+      files.each do |file|
+        @files[file] = Time.now
       end
     end
 
@@ -42,10 +50,13 @@ module Conveyor
       return method.to_s
     end
     
-    def start(files)
-      files.each do |file|
-        @current_file = file
-        self.instance_eval File.read(@command_file)
+    def check
+      @files.each do |file, last_touched|
+        if Time.now - last_touched > (@opts[:latency] || 10)
+          @current_file = file
+          self.instance_eval File.read(@command_file)
+          @files.delete(file)
+        end
       end
     rescue => e
       puts e.message

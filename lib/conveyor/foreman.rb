@@ -9,7 +9,8 @@ module Conveyor
       loglvl(:debug)
 
       @config = read_configs
-      @workers = {}
+      @listeners = {}
+      @belts = {}
       @worker_defs = ARGV.shift
       @worker_defs ||= @config["worker_defs"]
     end
@@ -38,25 +39,27 @@ module Conveyor
     def watch(*args, &block)
       opts = args.extract_options!
       
-      opts[:latency] ||= 0.5
-
       dir = File.expand_path(args.first)
     
       raise "Directory #{dir} not found" unless File.directory? dir
 
       listener = Listen.to(dir)
-      listener.latency(opts[:latency]) if opts[:latency]
       listener.ignore(opts[:ignore]) if opts[:ignore]
       listener.force_polling(opts[:force_polling]) if opts[:force_polling]
 
-      b = Belt.new(dir, @current_worker)
+      b = @belts[dir] = Belt.new(dir, @current_worker)
       callback = lambda do |modified, added, removed|
-        files = modified + added
-        b.start(files.uniq);
+        begin
+          files = modified + added
+          b.touch(files) unless files.empty?
+        rescue => e
+          puts "Error: " + e.message
+          puts e.backtrace
+        end
       end
 
       listener.change(&callback)
-      @workers[dir] = listener
+      @listeners[dir] = listener
     rescue => e
       error "ERROR: #{e.message}"
       error e.backtrace
@@ -70,21 +73,25 @@ module Conveyor
     
     def start_monitor
       load!
-      @workers.each do |k, listener| 
+      @listeners.each do |k, listener| 
         info "Watching #{k}"
         listener.start(false) 
       end
 
       info "Waiting for files..."
-      Conveyor::Input.listen
+      # Conveyor::Input.listen
+      loop do
+        @belts.each { |dir, b| b.check }
+        sleep 1
+      end
 
       info "Stopping Monitor", :color => :green
     end
 
     def load!
-      @workers.each { |dir,l| info "Stopping #{dir} listener"; l.stop }
+      @listeners.each { |dir,l| info "Stopping #{dir} listener"; l.stop }
 
-      @workers = {}
+      @listeners = {}
       @notify_list = []
       
       info "Loading workers from #{@worker_defs}"      

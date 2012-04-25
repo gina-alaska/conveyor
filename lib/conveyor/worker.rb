@@ -17,6 +17,9 @@ module Conveyor
       # @glob = escape_glob(glob)
     end
 
+    def touch
+    end
+
     def name(value=nil)
       @name = value unless value.nil?
       @name ||= File.basename(worker_def)

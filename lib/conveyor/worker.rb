@@ -67,16 +67,17 @@ module Conveyor
     def start(file, &block)
       @filename = file
       @status = Conveyor::Status.new(file)
-      info "Starting worker for #{file}", :color => :green
+      info "Starting #{file}", :color => :green
 
       @start = Time.now
       begin
         instance_exec(file, &block) 
       ensure
-        @elapsed = Time.now - @start
+        @elapsed = "%0.2f"%(Time.now - @start)
+
         #Check status and send any errors we collected
         if @status.success?
-          info "Completed #{file}, #{"%0.2f"%@elapsed}s elapsed", :color => :green
+          info "Completed #{file}, #{@elapsed}s elapsed", :color => :green
         else
           error "Error(s) encountered in #{file}", :color => :red
         end

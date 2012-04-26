@@ -20,6 +20,7 @@ module Conveyor
   autoload :Worker,   'conveyor/worker'
   autoload :Status,   'conveyor/status'
   autoload :Input, 		'conveyor/input'
+  autoload :Queue,    'conveyor/queue'
   
   def self.start
     Foreman.instance.start_monitor

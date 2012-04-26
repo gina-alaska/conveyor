@@ -28,8 +28,8 @@ module Conveyor
     end
 
     def touch(files)
-      @mutex.synchronize do
-        files.each do |f|
+      files.each do |f|
+        @mutex.synchronize do
           @files[f] = Time.now
         end
       end
@@ -55,11 +55,12 @@ module Conveyor
     
     def check
       @mutex.synchronize do
-        @files.each do |file, last_touched|
-          if Time.now - last_touched > 10
-            @files.delete(file)
-            @current_file = file
-            self.instance_eval File.read(@command_file)
+        @files.delete_if do |file, last_touched|
+          if Time.now - last_touched > 30
+            process(file)
+            true
+          else
+            false
           end
         end
       end
@@ -69,6 +70,11 @@ module Conveyor
     end
 
     private
+
+    def process(file)
+      @current_file = file
+      self.instance_eval File.read(@command_file)
+    end
 
     def escape_glob(glob)
       if glob.class == String 

@@ -82,6 +82,8 @@ module Conveyor
       info "Waiting for files..."
       # Conveyor::Input.listen
       loop do
+        status = @belts.collect { |dir, b| {b.name => b.count} }
+        print status.inspect + "\r"
         @belts.each { |dir, b| b.check }
         sleep 1
       end

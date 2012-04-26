@@ -5,6 +5,10 @@ module Conveyor
       @queue = []
     end
 
+    def count
+      @queue.count
+    end
+
     def touch(file)
       push(file)
     end

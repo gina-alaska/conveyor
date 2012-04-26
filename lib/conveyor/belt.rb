@@ -13,6 +13,14 @@ module Conveyor
       @queue = Conveyor::Queue.new
     end
 
+    def count
+      @queue.count
+    end
+
+    def name
+      File.basename(@command_file, '.worker')
+    end
+
     def reload!
       warning "Reloading workers!"
       Forman.instance.load!

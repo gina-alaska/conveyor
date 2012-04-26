@@ -10,7 +10,7 @@ module Conveyor
       @command_file = command_file
       @files = {}
       @opts = {}
-      @mutex = Mutex.new
+      @queue = Conveyor::Queue.new
     end
 
     def reload!
@@ -29,9 +29,7 @@ module Conveyor
 
     def touch(files)
       files.each do |f|
-        @mutex.synchronize do
-          @files[f] = Time.now
-        end
+        @queue.push(f)
       end
     end
 
@@ -54,15 +52,13 @@ module Conveyor
     end
     
     def check
-      @mutex.synchronize do
-        @files.delete_if do |file, last_touched|
-          if Time.now - last_touched > 30
-            process(file)
-            true
-          else
-            false
-          end
-        end
+      job = @queue.peek
+      if !job.nil? && (Time.now - job[:updated_at]) > 30
+        @queue.pop(job[:file])
+        process(job[:file])
+        true
+      else
+        false
       end
     rescue => e
       puts e.message

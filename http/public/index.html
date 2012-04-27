@@ -6,7 +6,7 @@
         function debug(str){ $("#debug").append("<p>"+str+"</p>"); };
         var host = location.host.split(':')[0]
 
-        ws = new WebSocket("ws://" + host + ":8080");
+        ws = new WebSocket("ws://" + host + ":9876");
         ws.onmessage = function(evt) { $("#msg").append("<p>"+evt.data+"</p>"); };
         ws.onclose = function() { debug("socket closed"); };
         ws.onopen = function() {

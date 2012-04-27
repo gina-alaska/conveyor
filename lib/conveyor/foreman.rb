@@ -36,9 +36,8 @@ module Conveyor
       @config["threadpool"] ||= 20
 
       @config["websocket"] ||= {}
-      @config["websocket"]["enable"] ||= true
       @config["websocket"]["host"] ||= "0.0.0.0"
-      @config["websocket"]["port"] ||= 8080
+      @config["websocket"]["port"] ||= 9876
 
       @config.symbolize_keys!
       @config[:websocket].symbolize_keys!
@@ -105,7 +104,7 @@ module Conveyor
           end
         end
 
-        if @config[:websocket][:enable]
+        unless @config[:websocket][:disable]
           EventMachine::WebSocket.start(@config[:websocket]) do |ws|
             ws.onopen {
               sid = @channel.subscribe { |msg| ws.send msg }

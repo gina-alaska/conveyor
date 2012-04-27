@@ -3,6 +3,8 @@ module Conveyor
     class Logfile
       class << self
         def write(logfile, name, msgtype, *msg)
+          return false if logfile.nil?
+          
           options = msg.extract_options!
 
           format = '[%s] [%s::%s] %s'

@@ -8,7 +8,7 @@ module Conveyor
           options[:tab] ||= 0
 
           format = "\t"*options[:tab]
-          format << '[%s] %s'
+          format << "\r[%s] %s"
           if msg.class == Array
             msg.each do |m|
               puts sprintf(format, Time.now, m).color(options[:color])              

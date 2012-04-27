@@ -13,6 +13,7 @@ require 'rainbow'
 require 'rb-readline'
 require 'fileutils'
 require 'eventmachine'
+require 'em-websocket'
 
 module Conveyor
   autoload :Output,   'conveyor/output'

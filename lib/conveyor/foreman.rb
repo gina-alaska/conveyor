@@ -4,7 +4,8 @@ module Conveyor
     include Singleton
     include Conveyor::Output
 
-    attr_accessor :workers
+    attr_accessor :workers, :channel
+
     def initialize
       loglvl(:debug)
       read_configs
@@ -12,11 +13,11 @@ module Conveyor
       @listeners = {}
       @belts = {}
       @worker_defs = ARGV.shift
-      @worker_defs ||= @config["worker_defs"]
+      @worker_defs ||= @config[:worker_defs]
     end
 
     def logfile
-      File.expand_path(@config["logfile"])
+      File.expand_path(@config[:logfile])
     end
 
     def name
@@ -34,7 +35,13 @@ module Conveyor
       @config["logfile"] ||= './log/conveyor.log'
       @config["threadpool"] ||= 20
 
-      @config
+      @config["websocket"] ||= {}
+      @config["websocket"]["enable"] ||= true
+      @config["websocket"]["host"] ||= "0.0.0.0"
+      @config["websocket"]["port"] ||= 8080
+
+      @config.symbolize_keys!
+      @config[:websocket].symbolize_keys!
     end
 
     def watch(*args, &block)
@@ -82,8 +89,10 @@ module Conveyor
 
       info "Waiting for files..."
       # Conveyor::Input.listen
-      EM.threadpool_size = @config["threadpool"] || 20
+      EM.threadpool_size = @config[:threadpool] || 20
       EM.run do
+        @channel = EM::Channel.new
+
         p = EM::PeriodicTimer.new(1) do
           output_status
         end
@@ -95,6 +104,18 @@ module Conveyor
             end
           end
         end
+
+        if @config[:websocket][:enable]
+          EventMachine::WebSocket.start(@config[:websocket]) do |ws|
+            ws.onopen {
+              sid = @channel.subscribe { |msg| ws.send msg }
+              info "#{sid} connected to websocket!"
+              ws.onclose {
+                @channel.unsubscribe(sid)
+              }
+            }
+          end
+        end
       end
 
       info "Stopping Monitor", :color => :green
@@ -102,7 +123,7 @@ module Conveyor
 
     def output_status
       status = @belts.collect { |dir, b| "#{b.name}: #{b.count}" }
-      print " #{status.join(', ')}\r"
+      print "\r#{status.join(', ')}"
     end
 
     def load!

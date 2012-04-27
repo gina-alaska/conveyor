@@ -1,6 +1,7 @@
 require 'conveyor/output/console'
 require 'conveyor/output/email'
 require 'conveyor/output/logfile'
+require 'conveyor/output/channel'
 
 module Conveyor
   module Output
@@ -57,9 +58,11 @@ module Conveyor
     end
     
     def output(msgtype, *msg)
-      Console.send(msgtype, *msg) if should_log?(msgtype)
-      Logfile.write(logfile, name, msgtype, *msg) if !logfile.nil? && should_log?(msgtype)
-      Email.send(msgtype, *msg) if should_log?(msgtype, :error)
+      return false unless should_log?(msgtype)
+      Console.send(msgtype, *msg)
+      Logfile.write(logfile, name, msgtype, *msg)
+      Email.send(msgtype, *msg) 
+      Channel.instance.write(name, msgtype, *msg)
     end
     
     def send_notifications

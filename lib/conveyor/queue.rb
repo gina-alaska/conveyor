@@ -40,8 +40,10 @@ module Conveyor
 
     def unpop(job)
       @mutex.synchronize do
-        @queue.push(job)
-        @queue.sort! { |x,y| x[:updated_at] <=> y[:updated_at] }
+        unless find(job[:file])
+          @queue.push(job)
+          @queue.sort! { |x,y| x[:updated_at] <=> y[:updated_at] }
+        end
       end
     end
 

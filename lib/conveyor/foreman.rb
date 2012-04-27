@@ -3,12 +3,12 @@ module Conveyor
   class Foreman
     include Singleton
     include Conveyor::Output
-  
+
     attr_accessor :workers
     def initialize
       loglvl(:debug)
+      read_configs
 
-      @config = read_configs
       @listeners = {}
       @belts = {}
       @worker_defs = ARGV.shift
@@ -25,15 +25,16 @@ module Conveyor
   
     def read_configs
       if File.exists?('.conveyor')
-        YAML.load(File.open('.conveyor'))
+        @config = YAML.load(File.open('.conveyor'))
       elsif File.exists?('~/.conveyor')
-        YAML.load(File.open('~/.conveyor'))
-      else
-        { 
-          "worker_defs" => File.expand_path('.workers', Dir.pwd),
-          "logfile" => './log/conveyor.log'
-        }
+        @config = YAML.load(File.open('~/.conveyor'))
       end
+
+      @config["worker_defs"] ||= File.expand_path('.workers', Dir.pwd)
+      @config["logfile"] ||= './log/conveyor.log'
+      @config["threadpool"] ||= 20
+
+      @config
     end
 
     def watch(*args, &block)
@@ -81,6 +82,7 @@ module Conveyor
 
       info "Waiting for files..."
       # Conveyor::Input.listen
+      EM.threadpool_size = @config["threadpool"] || 20
       EM.run do
         p = EM::PeriodicTimer.new(1) do
           output_status

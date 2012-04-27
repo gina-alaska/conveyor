@@ -1,4 +1,4 @@
 ---
 worker_defs: ./workers
 logfile: ./log/conveyor.log
-
+threadpool: 20

@@ -12,6 +12,7 @@ require 'yaml'
 require 'rainbow'
 require 'rb-readline'
 require 'fileutils'
+require 'eventmachine'
 
 module Conveyor
   autoload :Output,   'conveyor/output'

@@ -35,7 +35,14 @@ module Conveyor
 
     def find(file)
       i = @queue.find_index { |j| j[:file] == file }
-      @queue[i]
+      @queue[i] unless i.nil?
+    end
+
+    def unpop(job)
+      @mutex.synchronize do
+        @queue.push(job)
+        @queue.sort! { |x,y| x[:updated_at] <=> y[:updated_at] }
+      end
     end
 
     def pop(file = nil)

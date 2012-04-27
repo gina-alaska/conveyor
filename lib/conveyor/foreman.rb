@@ -81,14 +81,26 @@ module Conveyor
 
       info "Waiting for files..."
       # Conveyor::Input.listen
-      loop do
-        status = @belts.collect { |dir, b| "#{b.name}: #{b.count}" }
-        print "#{status.join(', ')}\r"
-        @belts.each { |dir, b| b.check }
-        sleep 1
+      EM.run do
+        p = EM::PeriodicTimer.new(1) do
+          output_status
+        end
+
+        EM::PeriodicTimer.new(1) do
+          @belts.each do |dir, b|
+            EM.defer do
+              b.check
+            end
+          end
+        end
       end
 
       info "Stopping Monitor", :color => :green
+    end
+
+    def output_status
+      status = @belts.collect { |dir, b| "#{b.name}: #{b.count}" }
+      print " #{status.join(', ')}\r"
     end
 
     def load!

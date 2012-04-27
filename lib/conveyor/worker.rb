@@ -10,14 +10,35 @@ module Conveyor
     attr_reader :status
     attr_reader :worker_def
 
-    def initialize(worker_def, log = MSGLVLS[:debug])
+    def initialize(file, worker_def, log = MSGLVLS[:debug])
+      @filename = file
       @loglvl = log
       @worker_def = worker_def
       @notify = []
       # @glob = escape_glob(glob)
     end
+    
+    def extension(glob)
+      "*.#{glob}"
+    end
 
-    def touch
+    def any
+      '*'
+    end
+  
+    def method_missing(method, value = nil)
+      return method.to_s
+    end    
+
+    def watch(*args, &block)
+      yield
+    end
+
+    def match(glob, &block)
+      # puts File.fnmatch(glob, @filename)
+      if File.fnmatch(glob, @filename)
+        yield @filename
+      end
     end
 
     def name(value=nil)
@@ -67,22 +88,20 @@ module Conveyor
       end
     end
 
-    def start(file, &block)
-      @filename = file
-      @status = Conveyor::Status.new(file)
-      info "Starting #{file}", :color => :green
-
+    def start
+      @status = Conveyor::Status.new(@filename)
+      info "Starting #{@filename}", :color => :green
       @start = Time.now
       begin
-        instance_exec(file, &block) 
+        instance_eval(File.read(@worker_def), worker_def)
       ensure
         @elapsed = "%0.2f"%(Time.now - @start)
 
         #Check status and send any errors we collected
         if @status.success?
-          info "Completed #{file}, #{@elapsed}s elapsed", :color => :green
+          info "Completed #{@filename}, #{@elapsed}s elapsed", :color => :green
         else
-          error "Error(s) encountered in #{file}", :color => :red
+          error "Error(s) encountered in #{@filename}", :color => :red
         end
         send_notifications
       end

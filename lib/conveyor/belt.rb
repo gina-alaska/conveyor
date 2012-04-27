@@ -1,6 +1,8 @@
 module Conveyor
   # Does not persist, do not use any class variables 
   class Belt
+    SETTLE_TIME = 30
+
     include Conveyor::Output
 
     attr_reader :command_file
@@ -8,8 +10,6 @@ module Conveyor
     def initialize(watch_path, command_file)#, opts = {})
       @work_dir = watch_path
       @command_file = command_file
-      @files = {}
-      @opts = {}
       @queue = Conveyor::Queue.new
     end
 
@@ -21,52 +21,19 @@ module Conveyor
       File.basename(@command_file, '.worker')
     end
 
-    def reload!
-      warning "Reloading workers!"
-      Forman.instance.load!
-    end
-
-    def watch(*args, &block)
-      opts = args.extract_options!
-      path = File.expand_path(args.shift)
-
-      if File.fnmatch(path, @work_dir)
-        instance_eval(&block) 
-      end
-    end
-
     def touch(files)
       files.each do |f|
         @queue.push(f)
       end
     end
-
-    def match(glob, &block)
-      if File.fnmatch(glob, @current_file)
-        Worker.new(@command_file, @loglvl).start(@current_file, &block)
-      end
-    end
-    
-    def extension(glob)
-      "*.#{glob}"
-    end
-
-    def any
-      '*'
-    end
-  
-    def method_missing(method, value = nil)
-      return method.to_s
-    end
     
     def check
-      job = @queue.peek
-      if !job.nil? && (Time.now - job[:updated_at]) > 30
-        @queue.pop(job[:file])
-        process(job[:file])
-        true
+      job = @queue.pop
+      # puts job.inspect
+      if job && (Time.now - job[:updated_at]) > SETTLE_TIME
+        Worker.new(job[:file], @command_file).start
       else
-        false
+        @queue.unpop(job) unless job.nil?
       end
     rescue => e
       puts e.message
@@ -76,8 +43,6 @@ module Conveyor
     private
 
     def process(file)
-      @current_file = file
-      self.instance_eval File.read(@command_file)
     end
 
     def escape_glob(glob)

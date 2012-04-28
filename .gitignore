@@ -3,3 +3,4 @@ conf.d/*.yml
 workers/*.worker
 log/*
 *.log
+.DS_Store

@@ -4,7 +4,7 @@ module Conveyor
     include Singleton
     include Conveyor::Output
 
-    attr_accessor :workers, :channel
+    attr_accessor :workers, :channel, :config
 
     def initialize
       loglvl(:debug)
@@ -14,6 +14,7 @@ module Conveyor
       @belts = {}
       @worker_defs = ARGV.shift
       @worker_defs ||= @config[:worker_defs]
+
     end
 
     def logfile
@@ -22,6 +23,10 @@ module Conveyor
 
     def name
       'Foreman'
+    end
+
+    def channel 
+      @channel ||= EM::Channel.new
     end
   
     def read_configs
@@ -78,46 +83,19 @@ module Conveyor
       @notify_list.uniq!
       @notify_list
     end
+
+    def stop!
+      @listeners.each { |dir,l| info "Stopping #{dir} listener"; l.stop }
+      @listeners = {}
+      @notify_list = []      
+    end
     
-    def start_monitor
+    def start
       load!
       @listeners.each do |k, listener| 
         info "Watching #{k}"
         listener.start(false) 
       end
-
-      info "Waiting for files..."
-      # Conveyor::Input.listen
-      EM.threadpool_size = @config[:threadpool] || 20
-      EM.run do
-        @channel = EM::Channel.new
-
-        p = EM::PeriodicTimer.new(1) do
-          output_status
-        end
-
-        EM::PeriodicTimer.new(1) do
-          @belts.each do |dir, b|
-            EM.defer do
-              b.check
-            end
-          end
-        end
-
-        unless @config[:websocket][:disable]
-          EventMachine::WebSocket.start(@config[:websocket]) do |ws|
-            ws.onopen {
-              sid = @channel.subscribe { |msg| ws.send msg }
-              info "#{sid} connected to websocket!"
-              ws.onclose {
-                @channel.unsubscribe(sid)
-              }
-            }
-          end
-        end
-      end
-
-      info "Stopping Monitor", :color => :green
     end
 
     def output_status
@@ -125,11 +103,16 @@ module Conveyor
       print "\r#{status.join(', ')}"
     end
 
-    def load!
-      @listeners.each { |dir,l| info "Stopping #{dir} listener"; l.stop }
+    def check
+      @belts.each do |dir, b|
+        EM.defer do
+          b.check
+        end
+      end      
+    end
 
-      @listeners = {}
-      @notify_list = []
+    def load!
+      stop!
       
       info "Loading workers from #{@worker_defs}"      
       Dir.glob(File.join(@worker_defs, '*.worker')) do |file|

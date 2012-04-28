@@ -28,18 +28,8 @@ module Conveyor
 
   def self.stop
     Foreman.instance.stop!
-    Websocket.stop
-    EM::stop_event_loop
-  end
-
-  def self.stop!
-    stop
+    EventMachine.stop
     exit
-  end
-
-  def self.restart
-    stop
-    start
   end
 
   def self.fm
@@ -47,21 +37,22 @@ module Conveyor
   end
 
   def self.start
-    EM.threadpool_size = fm.config[:threadpool] || 20
+    trap("TERM") { stop }
+    trap("INT") { stop }
 
-    EM::next_tick do
-      fm.info "Starting Conveyor v#{Conveyor::VERSION}"
-      fm.start
-      fm.info "Waiting for files", :color => :green
+    EventMachine.threadpool_size = fm.config[:threadpool] || 20
 
-      Conveyor::Websocket.start
-    end
+    fm.info "Starting Conveyor v#{Conveyor::VERSION}"
+    fm.start
+    fm.info "Waiting for files", :color => :green
+    fm.info "Press CTRL-C to stop"
+    Conveyor::Websocket.start
 
-    EM::PeriodicTimer.new(1) do
+    EventMachine::PeriodicTimer.new(1) do
       fm.output_status
     end
 
-    EM::PeriodicTimer.new(1) do
+    EventMachine::PeriodicTimer.new(1) do
       fm.check
     end
   end
@@ -71,8 +62,6 @@ def watch(*args, &block)
   fm.watch(*args, &block)
 end
 
-EM::run do
-  trap("TERM") { Conveyor.stop }
-  trap("INT") { Conveyor.restart }
+EventMachine.run do
   Conveyor.start
 end

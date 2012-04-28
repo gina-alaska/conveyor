@@ -6,11 +6,11 @@ module Conveyor
           fm.info "Websocket disabled"
           return
         end
-        return
 
-        fm.info "Starting websocket on #{@config[:host]}:#{@config[:port]}", :color => :green
-
-        EM::WebSocket.start(config) do |ws|
+        fm.info "Starting websocket on #{config[:host]}:#{config[:port]}", :color => :green
+        
+        EventMachine::start_server(config[:host], config[:port],
+          EventMachine::WebSocket::Connection, config) do |ws|
           ws.onopen {
             sid = fm.channel.subscribe { |type,msg| ws.send msg }
             fm.info "#{sid} connected to websocket!"
@@ -22,8 +22,7 @@ module Conveyor
       end
 
       def stop
-        return
-        EM::WebSocket.stop unless config[:disable]
+        # EM::WebSocket.stop unless config[:disable]
       end
 
       def fm

@@ -35,8 +35,9 @@ module Conveyor
     end
 
     def match(glob, &block)
+      debug "#{@filename} matches? #{glob}"
       # puts File.fnmatch(glob, @filename)
-      if File.fnmatch(glob, @filename)
+      if File.fnmatch(glob, @filename, File::FNM_PATHNAME | File::FNM_DOTMATCH)
         yield @filename
       end
     end

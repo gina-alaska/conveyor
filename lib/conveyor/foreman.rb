@@ -56,7 +56,15 @@ module Conveyor
       raise "Directory #{dir} not found" unless File.directory? dir
 
       listener = Listen.to(dir)
-      listener.latency(0.5)
+
+      if opts[:latency]
+      	listener.latency(opts[:latency])
+      elsif opts[:force_polling]
+	listener.latency(5)
+      else
+	listener.latency(0.5)
+      end
+
       listener.ignore(opts[:ignore]) if opts[:ignore]
       listener.force_polling(opts[:force_polling]) if opts[:force_polling]
 

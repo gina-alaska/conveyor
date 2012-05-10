@@ -51,28 +51,31 @@ module Conveyor
     def watch(*args, &block)
       @listener_opts = args.extract_options!
       @listener_dir = File.expand_path(args.first)
-      raise "Directory #{dir} not found" unless File.directory? dir
+      raise "Directory #{@listener_dir} not found" unless File.directory? @listener_dir
+      
+      @listener_opts[:latency] ||= 1
+      # Set a large latency if we force polling, prevents high cpu usage
+      @listener_opts[:latency] = 1 if @listener_opts[:latency] < 1 and @listener_opts[:force_polling]
       
       yield
     end
     
     def match(*args, &block)
       opts = args.extract_options!
+      debug "Filters: #{args.inspect}"
       
       listener = Listen.to(@listener_dir)
-      listener.latency(0.5)
-      if opts[:latency]
-      	listener.latency(opts[:latency])
-      elsif opts[:force_polling]
-	      listener.latency(5)
+      if @listener_opts[:latency]
+      	listener.latency(@listener_opts[:latency])
       else
 	      listener.latency(0.5)
       end
 
-      listener.ignore(opts[:ignore]) if opts[:ignore]
-      listener.force_polling(opts[:force_polling]) if opts[:force_polling]
+      listener.ignore(opts[:ignore]) if @listener_opts[:ignore]
+      listener.force_polling(opts[:force_polling]) if @listener_opts[:force_polling]
+      listener.filter(*args)
 
-      b = @belts[dir] = Belt.new(dir, @current_worker)
+      b = @belts[@listener_dir] = Belt.new(@listener_dir, @current_worker)
       callback = lambda do |modified, added, removed|
         begin
           files = modified + added
@@ -84,18 +87,18 @@ module Conveyor
       end
 
       listener.change(&callback)
-      @listeners[dir] = listener
+      @listeners[@listener_dir] = listener
     rescue => e
       error "ERROR: #{e.message}"
       error e.backtrace
     end
     
     def file(glob)
-      Regexp.new("#{glob}$")
+      /#{glob}$/
     end
     
     def extension(glob)
-      Regexp.new("\.#{glob}$")
+      /\.#{glob}$/
     end
 
     def any
@@ -152,5 +155,9 @@ module Conveyor
         end
       end
     end
+    
+    def method_missing(method, value = nil)
+      return method.to_s
+    end 
   end
 end

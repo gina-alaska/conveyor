@@ -18,6 +18,10 @@ module Conveyor
       # @glob = escape_glob(glob)
     end
     
+    def file(glob)
+      "**/#{glob}"
+    end
+    
     def extension(glob)
       "*.#{glob}"
     end

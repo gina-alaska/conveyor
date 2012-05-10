@@ -49,13 +49,17 @@ module Conveyor
     end
 
     def watch(*args, &block)
+      @listener_opts = args.extract_options!
+      @listener_dir = File.expand_path(args.first)
+      raise "Directory #{dir} not found" unless File.directory? dir
+      
+      yield
+    end
+    
+    def match(*args, &block)
       opts = args.extract_options!
       
-      dir = File.expand_path(args.first)
-    
-      raise "Directory #{dir} not found" unless File.directory? dir
-
-      listener = Listen.to(dir)
+      listener = Listen.to(@listener_dir)
       listener.latency(0.5)
       listener.ignore(opts[:ignore]) if opts[:ignore]
       listener.force_polling(opts[:force_polling]) if opts[:force_polling]
@@ -76,6 +80,18 @@ module Conveyor
     rescue => e
       error "ERROR: #{e.message}"
       error e.backtrace
+    end
+    
+    def file(glob)
+      "**/#{glob}"
+    end
+    
+    def extension(glob)
+      "*.#{glob}"
+    end
+
+    def any
+      '*'
     end
     
     def notify_list

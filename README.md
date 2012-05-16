@@ -17,3 +17,8 @@ Usage
     thor help [command]      # show help for the given command
     thor belt list           # list the currently active belts
     thor worker watch        # tell the workers to start watching directories!
+
+License
+-------
+
+See LICENSE file for licensing and credits.  Think BSD/MIT.

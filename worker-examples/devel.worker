@@ -1,0 +1,17 @@
+watch '~/data_test', :force_polling => true do
+  notify 'will@alaska.edu'
+  loglvl :debug
+
+  match extension done do
+    warning filename
+    sleep 5
+    #copy(like(filename), '~/test_bag/')
+    #copy(like(filename), '~/tester')
+    #copy(filename, '~/test_bar')
+    #copy(File.dirname(filename), '~/tester') #should fail
+
+    #scp filename, 'will@localhost:~/test_bag/'
+    #move like(filename), '~/tester_done/'
+    # delete like(filename) if status.success?
+  end
+end

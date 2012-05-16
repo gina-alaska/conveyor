@@ -20,17 +20,20 @@ module Conveyor
       # @glob = escape_glob(glob)
     end
 
+    # Return name to be used for logging purposes
     def name(value=nil)
       @name = value unless value.nil?
       @name ||= File.basename(worker_def)
       @name
     end
 
+    # Default log file to be based on worker def name
     def logfile
       dir = File.dirname(worker_def)
       File.expand_path(File.basename(worker_def, '.worker') + '.log', dir)
     end
     
+    # Catch any calls to error and set the status fail flags
     def error(*msg)
       opts = msg.extract_options!
       unless msg.flatten.empty?
@@ -41,6 +44,7 @@ module Conveyor
       @status.success?
     end
 
+    # Start the worker
     def start
       @status = Conveyor::Status.new(@filename)
       info "Starting #{@filename}", :color => :green
@@ -75,9 +79,6 @@ module Conveyor
       dest = File.expand_path(dest)
       
       Array.wrap(src).each do |s|
-        # say cmd
-        # return error "Tried to copy a directory #{s}, only files are allowed" if File.directory? s
-        
         run "#{cmd} #{s} #{dest}"
         sync
         

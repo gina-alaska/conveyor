@@ -12,13 +12,10 @@ module Conveyor
 
       @listeners = {}
       @belts = {}
-      @worker_defs = ARGV.shift
-      @worker_defs ||= @config[:worker_defs]
-
     end
 
     def logfile
-      File.expand_path(@config[:logfile])
+      @config[:logfile]
     end
 
     def name
@@ -30,22 +27,39 @@ module Conveyor
     end
   
     def read_configs
-      if File.exists?('.conveyor')
-        @config = YAML.load(File.open('.conveyor'))
+      @config = {
+        "worker_defs" => File.expand_path('.workers', Dir.pwd),
+        "logfile" => File.expand_path('log/conveyor.log', Dir.pwd),
+        "threadpool" => 5,
+        "websocket" => {
+          "disabled" => false,
+          "host" => "0.0.0.0",
+          "port" => 9876
+        }
+      }
+      
+      @config_file = '.conveyor'
+      if File.exists? @config_file
+        @config.merge! YAML.load(File.open(@config_file))
       elsif File.exists?('~/.conveyor')
-        @config = YAML.load(File.open('~/.conveyor'))
+        @config_file = '~/.conveyor'
+        @config.merge! YAML.load(File.open(@config_file))
+      else
+        write_config(@config)
       end
-
-      @config["worker_defs"] ||= File.expand_path('.workers', Dir.pwd)
-      @config["logfile"] ||= './log/conveyor.log'
-      @config["threadpool"] ||= 20
-
-      @config["websocket"] ||= {}
-      @config["websocket"]["host"] ||= "0.0.0.0"
-      @config["websocket"]["port"] ||= 9876
+      
+      # New version of conveyor update config file with new params
+      if !@config['version'] || @config['version'] != Conveyor::VERSION
+        @config['version'] = Conveyor::VERSION
+        write_config(@config)
+      end
 
       @config.symbolize_keys!
       @config[:websocket].symbolize_keys!
+    end
+    
+    def write_config(config)
+      File.open(@config_file, 'w') { |fp| fp << config.to_yaml }
     end
 
     def watch(*args, &block)
@@ -72,7 +86,10 @@ module Conveyor
       end
 
       listener.ignore(opts[:ignore]) if @listener_opts[:ignore]
-      listener.force_polling(opts[:force_polling]) if @listener_opts[:force_polling]
+      if @listener_opts[:force_polling]
+        debug "Force polling"
+        listener.force_polling(true) 
+      end
       listener.filter(*args)
 
       b = @belts[@listener_dir] = Belt.new(@listener_dir, @current_worker)
@@ -141,8 +158,10 @@ module Conveyor
     def load!
       stop!
       
-      info "Loading workers from #{@worker_defs}"      
-      Dir.glob(File.join(@worker_defs, '*.worker')) do |file|
+      info "Loading workers from #{@config[:worker_defs]}"            
+      FileUtils.mkdir_p(@config[:worker_defs])
+      
+      Dir.glob(File.join(@config[:worker_defs], '*.worker')) do |file|
         begin
           @current_worker = File.expand_path(file)
           instance_eval File.read(@current_worker)

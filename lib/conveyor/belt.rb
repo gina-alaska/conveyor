@@ -36,7 +36,7 @@ module Conveyor
         @queue.pop(job[:file])
       else
         # File not ready yet
-        @queue.unreserve(job) unless job.nil?
+        @queue.unreserve(job[:file]) unless job.nil?
       end
     rescue => e
       puts e.message

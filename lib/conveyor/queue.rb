@@ -34,9 +34,9 @@ module Conveyor
       end
     end
     
-    def unreserve(job)
+    def unreserve(file)
       @mutex.synchronize do
-        i = find_index(job[:file])
+        i = find_index(file)
         @queue[i][:reserved] = false unless i.nil?
         @queue[i] unless i.nil?
       end

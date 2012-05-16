@@ -25,16 +25,33 @@ module Conveyor
       end
     end
 
-    def peek(file = nil)
-      if(file.nil?)
-        @queue.first
+    def reserve(file = nil)
+      @mutex.synchronize do
+        # find first non-reserved job
+        i = @queue.find_index { |j| !j[:reserved] }
+        @queue[i][:reserved] = true unless i.nil?
+        @queue[i] unless i.nil?
+      end
+    end
+    
+    def unreserve(job)
+      @mutex.synchronize do
+        i = find_index(job[:file])
+        @queue[i][:reserved] = false unless i.nil?
+        @queue[i] unless i.nil?
+      end
+    end
+    
+    def find_index(file = nil)
+      if file.nil?
+        @queue.empty? ? nil : 0
       else
-        find(file)
+        @queue.find_index { |j| j[:file] == file }
       end
     end
 
     def find(file)
-      i = @queue.find_index { |j| j[:file] == file }
+      i = find_index(file)
       @queue[i] unless i.nil?
     end
 

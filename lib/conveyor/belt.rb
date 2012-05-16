@@ -28,12 +28,15 @@ module Conveyor
     end
     
     def check
-      job = @queue.pop
+      job = @queue.reserve
       # puts job.inspect
       if job && (Time.now - job[:updated_at]) > SETTLE_TIME
         Worker.new(job[:file], @command_file).start
+        # Worker done remove it from the queue
+        @queue.pop(job[:file])
       else
-        @queue.unpop(job) unless job.nil?
+        # File not ready yet
+        @queue.unreserve(job) unless job.nil?
       end
     rescue => e
       puts e.message

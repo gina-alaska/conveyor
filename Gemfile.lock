@@ -41,7 +41,7 @@ DEPENDENCIES
   activesupport (~> 3.2.0)
   em-websocket
   eventmachine
-  listen
+  listen (~> 0.4.2)
   rainbow
   rb-fsevent
   rb-inotify

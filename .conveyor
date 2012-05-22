@@ -1,9 +1,0 @@
----
-worker_defs: /Users/will/workspace/conveyor/.workers
-logfile: /Users/will/workspace/conveyor/log/conveyor.log
-threadpool: 5
-websocket:
-  disabled: false
-  host: 0.0.0.0
-  port: 9876
-version: 0.0.1

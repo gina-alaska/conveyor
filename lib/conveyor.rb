@@ -2,9 +2,6 @@
 $: << File.expand_path('../lib', File.dirname(__FILE__))
 
 require 'rubygems'
-require 'bundler/setup'
-require 'conveyor'
-require 'rubygems'
 require 'active_support/core_ext'
 require 'singleton'
 require 'listen'

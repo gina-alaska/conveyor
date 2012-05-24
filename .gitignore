@@ -6,3 +6,4 @@ log/*
 .DS_Store
 .workers
 pkg
+.conveyor

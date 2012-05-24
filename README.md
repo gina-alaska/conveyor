@@ -6,17 +6,34 @@ Start of a thought on some code to handle moving data around when it shows up on
 Installation
 ------------
 
+Using rubygems
+
+    gem install gina-conveyor
+
+From source
+
     git clone https://github.com/gina-alaska/conveyor.git
     cd conveyor
-    bundle install
+    rake install
  
 Usage
 -----
 
-    thor list                # list available commands
-    thor help [command]      # show help for the given command
-    thor belt list           # list the currently active belts
-    thor worker watch        # tell the workers to start watching directories!
+Just run the executable to start the conveyor process.  Currently since no daemon mode is available it's best to start conveyor in a screen/tmux session
+
+    $ screen conveyor
+    [2012-05-24 13:39:52 -0800] Starting Conveyor v0.0.2
+    [2012-05-24 13:39:52 -0800] Loading workers from /home/wfisher/.workers
+    [2012-05-24 13:39:52 -0800] Waiting for files
+    [2012-05-24 13:39:52 -0800] Press CTRL-C to stop
+    [2012-05-24 13:39:52 -0800] Starting websocket on 0.0.0.0:9876
+
+Todo
+----
+
+1) Add daemon mode
+2) Document worker syntax
+3) Finish email notifications
 
 License
 -------

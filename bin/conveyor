@@ -1,25 +1,4 @@
-#!/usr/bin/env bash
-set -e
+#!/usr/bin/env ruby
+require 'conveyor'
 
-resolve_link() {
-  $(type -p greadlink readlink | head -1) "$1"
-}
-
-abs_dirname() {
-  local cwd="$(pwd)"
-  local path="$1"
-
-  while [ -n "$path" ]; do
-    cd "${path%/*}"
-    local name="${path##*/}"
-    path="$(resolve_link "$name" || true)"
-  done
-
-  pwd
-  cd "$cwd"
-}
-
-bin_path="$(abs_dirname "$0")"
-conveyor_path="$(abs_dirname "$bin_path/../")"
-
-exec "$conveyor_path/lib/conveyor.rb" "$@"
+Conveyor.start

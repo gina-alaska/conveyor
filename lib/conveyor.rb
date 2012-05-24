@@ -2,7 +2,7 @@
 $: << File.expand_path('../lib', File.dirname(__FILE__))
 
 require 'rubygems'
-#require 'bundler/setup'
+require 'bundler/setup'
 require 'conveyor'
 require 'rubygems'
 require 'active_support/core_ext'
@@ -37,31 +37,29 @@ module Conveyor
   end
 
   def self.start
-    trap("TERM") { stop }
-    trap("INT") { stop }
+    EventMachine.run do
+      trap("TERM") { stop }
+      trap("INT") { stop }
 
-    EventMachine.threadpool_size = fm.config[:threadpool] || 20
+      EventMachine.threadpool_size = fm.config[:threadpool] || 20
 
-    fm.info "Starting Conveyor v#{Conveyor::VERSION}"
-    fm.start
-    fm.info "Waiting for files", :color => :green
-    fm.info "Press CTRL-C to stop"
-    Conveyor::Websocket.start
+      fm.info "Starting Conveyor v#{Conveyor::VERSION}"
+      fm.start
+      fm.info "Waiting for files", :color => :green
+      fm.info "Press CTRL-C to stop"
+      Conveyor::Websocket.start
 
-    EventMachine::PeriodicTimer.new(1) do
-      fm.output_status
-    end
+      EventMachine::PeriodicTimer.new(1) do
+        fm.output_status
+      end
 
-    EventMachine::PeriodicTimer.new(1) do
-      fm.check
+      EventMachine::PeriodicTimer.new(1) do
+        fm.check
+      end
     end
   end
 end
 
 def watch(*args, &block)
   fm.watch(*args, &block)
-end
-
-EventMachine.run do
-  Conveyor.start
 end

@@ -1,13 +1,3 @@
 source "http://rubygems.org"
 
-gem "activemodel", "~> 3.2.0"
-gem "activesupport", "~> 3.2.0"
-gem "thor"
-gem "listen", "~> 0.4.2"
-gem "whenever"
-gem "rainbow"
-gem "rb-inotify"
-gem "rb-fsevent"
-gem "rb-readline"
-gem "eventmachine"
-gem "em-websocket"
+gemspec

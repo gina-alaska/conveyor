@@ -5,6 +5,8 @@ module Conveyor
       
       def initialize
         @config = Conveyor::Foreman.instance.config[:campfire]
+        @host = Socket.gethostname
+        
         if enabled?
           @campfire = Tinder::Campfire.new @config[:subdomain], :token => @config[:token]
         end
@@ -14,7 +16,9 @@ module Conveyor
         return false if !enabled? or msgtype != :announce
         
         room = @campfire.find_room_by_name(@config[:room])
-        room.speak msg.join("\n")
+        Array(msg).each do |m|
+          room.speak "[#{@host}::#{name}] #{m}"
+        end
       end
       
       def enabled?

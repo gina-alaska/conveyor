@@ -4,6 +4,7 @@ $: << File.expand_path('../lib', File.dirname(__FILE__))
 require 'rubygems'
 require 'active_support/core_ext'
 require 'singleton'
+require 'socket'
 require 'listen'
 require 'yaml'
 require 'rainbow'

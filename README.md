@@ -31,9 +31,10 @@ Just run the executable to start the conveyor process.  Currently since no daemo
 Todo
 ----
 
-1) Add daemon mode
-2) Document worker syntax
-3) Finish email notifications
+1. Add daemon mode
+2. Document worker syntax
+3. Finish email notifications
+4. Add additional cli options
 
 License
 -------

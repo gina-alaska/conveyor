@@ -11,6 +11,7 @@ require 'rb-readline'
 require 'fileutils'
 require 'eventmachine'
 require 'em-websocket'
+require 'tinder'
 require "conveyor/version"
 
 module Conveyor

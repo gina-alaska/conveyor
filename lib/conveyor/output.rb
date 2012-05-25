@@ -2,6 +2,7 @@ require 'conveyor/output/console'
 require 'conveyor/output/email'
 require 'conveyor/output/logfile'
 require 'conveyor/output/channel'
+require 'conveyor/output/campfire'
 
 module Conveyor
   module Output
@@ -9,7 +10,8 @@ module Conveyor
       :debug    => 1, 
       :info     => 10, 
       :warning  => 20, 
-      :error    => 30
+      :error    => 30,
+      :announce => 40
     }
 
     def should_log?(lvl, maxlvl = nil)
@@ -57,12 +59,17 @@ module Conveyor
       output(:debug, *msg)
     end
     
+    def announce(*msg)
+      output(:announce, *msg)
+    end
+    
     def output(msgtype, *msg)
       return false unless should_log?(msgtype)
-      Console.send(msgtype, *msg)
+      Console.write(msgtype, *msg)
       Logfile.write(logfile, name, msgtype, *msg)
-      Email.send(msgtype, *msg) 
+      Email.write(msgtype, *msg) 
       Channel.instance.write(name, msgtype, *msg)
+      Campfire.instance.write(name, msgtype, *msg)
     end
     
     def send_notifications

@@ -35,6 +35,12 @@ module Conveyor
           "disabled" => false,
           "host" => "0.0.0.0",
           "port" => 9876
+        },
+        "campfire" => {
+          "subdomain" => "",
+          "use_ssl" => true,
+          "token" => "",
+          "room" => ""
         }
       }
       
@@ -56,6 +62,7 @@ module Conveyor
 
       @config.symbolize_keys!
       @config[:websocket].symbolize_keys!
+      @config[:campfire].symbolize_keys!
     end
     
     def write_config(config)

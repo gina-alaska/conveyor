@@ -2,6 +2,12 @@ module Conveyor
   module Output
     class Console
       class << self
+        def write(msgtype, *msg)
+          if respond_to?(msgtype)
+            self.send(msgtype, *msg)
+          end
+        end
+        
         def output(*msg)
           options = msg.extract_options!
           options[:color] ||= :default

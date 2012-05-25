@@ -24,6 +24,12 @@ module Conveyor
           @msg_queue << msg
         end
         
+        def write(msgtype, *msg)
+          if respond_to?(msgtype)
+            self.send(msgtype, *msg)
+          end
+        end
+        
         def mail
           return if @msg_queue.nil? || @msg_queue.empty?
           puts "Sending email to #{Conveyor::Foreman.instance.notify_list}"

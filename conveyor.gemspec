@@ -27,5 +27,5 @@ Gem::Specification.new do |gem|
   gem.add_dependency('rb-readline', '~> 0.4.2')
   gem.add_dependency('eventmachine', '~> 0.12.10')
   gem.add_dependency('em-websocket', '~> 0.3.6')
-  gem.add_dependency('tinder', '~> 1.9.1')
+  gem.add_dependency('tinder', '1.9.1')
 end

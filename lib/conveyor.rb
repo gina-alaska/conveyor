@@ -17,6 +17,8 @@ require 'tinder'
 require "conveyor/version"
 
 module Conveyor
+  extend ActiveSupport::Autoload
+  
   autoload :Output,     'conveyor/output'
   autoload :Foreman,    'conveyor/foreman'
   autoload :Belt,       'conveyor/belt'

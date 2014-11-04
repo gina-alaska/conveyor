@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    gina-conveyor (0.2.0)
+    gina-conveyor (0.2.1)
       activemodel (~> 4.1.0)
       activesupport (~> 4.1.0)
       em-websocket (~> 0.5.1)

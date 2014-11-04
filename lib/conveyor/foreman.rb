@@ -85,20 +85,9 @@ module Conveyor
       opts = args.extract_options!
       debug "Filters: #{args.inspect}"
       
-      listener = Listen.to(@listener_dir)
-      if @listener_opts[:latency]
-      	listener.latency(@listener_opts[:latency])
-      else
-	      listener.latency(0.5)
-      end
-
-      listener.ignore(opts[:ignore]) if @listener_opts[:ignore]
-      if @listener_opts[:force_polling]
-        debug "Force polling"
-        listener.force_polling(true) 
-      end
-      listener.filter(*args)
-
+      debug "Force polling" if @listener_opts[:force_polling]
+      listener_opts = { latency: @listener_opts[:latency] || 0.5, force_polling: @listener_opts[:force_polling] }
+      
       b = @belts[@listener_dir] = Belt.new(@listener_dir, @current_worker)
       callback = lambda do |modified, added, removed|
         begin
@@ -110,7 +99,10 @@ module Conveyor
         end
       end
 
-      listener.change(&callback)
+      listener = Listen.to(@listener_dir, listener_opts, &callback)
+      listener.ignore(opts[:ignore]) if @listener_opts[:ignore]
+      listener.only(*args)
+
       @listeners[@listener_dir] = listener
     rescue => e
       error "ERROR: #{e.message}"
@@ -145,7 +137,7 @@ module Conveyor
       load!
       @listeners.each do |k, listener| 
         info "Watching #{k}"
-        listener.start(false) 
+        listener.start
       end
     end
 

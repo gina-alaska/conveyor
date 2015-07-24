@@ -22,10 +22,10 @@ module Conveyor
       'Foreman'
     end
 
-    def channel 
+    def channel
       @channel ||= EM::Channel.new
     end
-  
+
     def read_configs
       @config = {
         "worker_defs" => File.expand_path('.workers', Dir.pwd),
@@ -35,15 +35,9 @@ module Conveyor
           "disabled" => false,
           "host" => "0.0.0.0",
           "port" => 9876
-        },
-        "campfire" => {
-          "subdomain" => "",
-          "use_ssl" => true,
-          "token" => "",
-          "room" => ""
         }
       }
-      
+
       @config_file = '.conveyor'
       if File.exists? @config_file
         @config.merge! YAML.load(File.open(@config_file))
@@ -53,7 +47,7 @@ module Conveyor
       else
         write_config(@config)
       end
-      
+
       # New version of conveyor update config file with new params
       if !@config['version'] || @config['version'] != Conveyor::VERSION
         @config['version'] = Conveyor::VERSION
@@ -62,9 +56,8 @@ module Conveyor
 
       @config.symbolize_keys!
       @config[:websocket].symbolize_keys!
-      @config[:campfire].symbolize_keys!
     end
-    
+
     def write_config(config)
       File.open(@config_file, 'w') { |fp| fp << config.to_yaml }
     end
@@ -73,21 +66,21 @@ module Conveyor
       @listener_opts = args.extract_options!
       @listener_dir = File.expand_path(args.first)
       raise "Directory #{@listener_dir} not found" unless File.directory? @listener_dir
-      
+
       @listener_opts[:latency] ||= 1
       # Set a large latency if we force polling, prevents high cpu usage
       @listener_opts[:latency] = 1 if @listener_opts[:latency] < 1 and @listener_opts[:force_polling]
-      
+
       yield
     end
-    
+
     def match(*args, &block)
       opts = args.extract_options!
       debug "Filters: #{args.inspect}"
-      
+
       debug "Force polling" if @listener_opts[:force_polling]
       listener_opts = { latency: @listener_opts[:latency] || 0.5, force_polling: @listener_opts[:force_polling] }
-      
+
       b = @belts[@listener_dir] = Belt.new(@listener_dir, @current_worker)
       callback = lambda do |modified, added, removed|
         begin
@@ -108,11 +101,11 @@ module Conveyor
       error "ERROR: #{e.message}"
       error e.backtrace
     end
-    
+
     def file(glob)
       /#{glob}$/
     end
-    
+
     def extension(glob)
       /\.#{glob}$/
     end
@@ -120,7 +113,7 @@ module Conveyor
     def any
       '*'
     end
-    
+
     def notify_list
       @notify_list.flatten!
       @notify_list.uniq!
@@ -130,12 +123,12 @@ module Conveyor
     def stop!
       @listeners.each { |dir,l| info "Stopping #{dir} listener"; l.stop }
       @listeners = {}
-      @notify_list = []      
+      @notify_list = []
     end
-    
+
     def start
       load!
-      @listeners.each do |k, listener| 
+      @listeners.each do |k, listener|
         info "Watching #{k}"
         listener.start
       end
@@ -151,31 +144,31 @@ module Conveyor
         EM.defer do
           b.check
         end
-      end      
+      end
     end
 
     def load!
       stop!
-      
-      info "Loading workers from #{@config[:worker_defs]}"            
+
+      info "Loading workers from #{@config[:worker_defs]}"
       FileUtils.mkdir_p(@config[:worker_defs])
-      
+
       Dir.glob(File.join(@config[:worker_defs], '*.worker')) do |file|
         begin
           @current_worker = File.expand_path(file)
           instance_eval File.read(@current_worker)
         rescue => e
           error [
-            "Error loading #{@current_worker}, skipping", 
-            e.message, 
+            "Error loading #{@current_worker}, skipping",
+            e.message,
             e.backtrace
           ].flatten
         end
       end
     end
-    
+
     def method_missing(method, value = nil)
       return method.to_s
-    end 
+    end
   end
 end

@@ -2,14 +2,13 @@ require 'conveyor/output/console'
 require 'conveyor/output/email'
 require 'conveyor/output/logfile'
 require 'conveyor/output/channel'
-require 'conveyor/output/campfire'
 
 module Conveyor
   module Output
     MSGLVLS = {
-      :debug    => 1, 
-      :info     => 10, 
-      :warning  => 20, 
+      :debug    => 1,
+      :info     => 10,
+      :warning  => 20,
       :error    => 30,
       :announce => 40
     }
@@ -46,11 +45,11 @@ module Conveyor
     def info(*msg)
       output(:info, *msg)
     end
-    
+
     def warning(*msg)
       output(:warning, *msg)
     end
-    
+
     def error(*msg)
       output(:error, *msg)
     end
@@ -58,20 +57,19 @@ module Conveyor
     def debug(*msg)
       output(:debug, *msg)
     end
-    
+
     def announce(*msg)
       output(:announce, *msg)
     end
-    
+
     def output(msgtype, *msg)
       return false unless should_log?(msgtype)
       Console.write(msgtype, *msg)
       Logfile.write(logfile, name, msgtype, *msg)
-      Email.write(msgtype, *msg) 
+      Email.write(msgtype, *msg)
       Channel.instance.write(name, msgtype, *msg)
-      Campfire.instance.write(name, msgtype, *msg)
     end
-    
+
     def send_notifications
       Email.mail
     end

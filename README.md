@@ -28,13 +28,26 @@ Just run the executable to start the conveyor process.  Currently since no daemo
     [2012-05-24 13:39:52 -0800] Press CTRL-C to stop
     [2012-05-24 13:39:52 -0800] Starting websocket on 0.0.0.0:9876
 
+Configuration
+-------------
+
+On the first run conveyor will create a .conveyor file with all the default options.  
+
+* worker_defs - directory where worker definition files live
+* logfile - location where global log output will be saved
+* threadpool - how many threads will be kept available to run workers.
+* command_timeout (seconds) - number of seconds that a command will execute before being terminated.  Default: 600 (10 minutes).
+* websocket - alternate status monitoring (deprecated)
+* campfie - alternate status notification (deprecated)
+* version - version of the conveyor script used to generate the config file.  New versions of conveyor will automatically update the config file with new options as they are added.  Previously defined or deprecated options will not be changed.
+
 Todo
 ----
 
-1. Add daemon mode
-2. Document worker syntax
-3. Finish email notifications
-4. Add additional cli options
+1. [ ] Add daemon mode
+2. [ ] Document worker syntax
+3. [ ] Finish email notifications
+4. [ ] Add additional cli options
 
 Worker Commands
 ---------------

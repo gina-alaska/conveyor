@@ -32,7 +32,7 @@ module Conveyor
         "logfile" => File.expand_path('log/conveyor.log', Dir.pwd),
         "threadpool" => 5,
         "websocket" => {
-          "disabled" => false,
+          "disabled" => true,
           "host" => "0.0.0.0",
           "port" => 9876
         }

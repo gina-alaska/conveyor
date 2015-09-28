@@ -2,13 +2,10 @@ module Conveyor
   class Websocket
     class << self
       def start
-        if config[:disable]
-          fm.info "Websocket disabled"
-          return
-        end
+        return if config[:disabled]
 
         fm.info "Starting websocket on #{config[:host]}:#{config[:port]}", :color => :green
-        
+
         EventMachine::start_server(config[:host], config[:port],
           EventMachine::WebSocket::Connection, config) do |ws|
           ws.onopen {

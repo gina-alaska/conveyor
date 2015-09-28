@@ -7,7 +7,7 @@ module Conveyor
   class Worker
     include Conveyor::Output
     include Conveyor::Workers::Syntax
-    
+
     attr_accessor :filename
     attr_reader :status
     attr_reader :worker_def
@@ -32,13 +32,13 @@ module Conveyor
       dir = File.dirname(worker_def)
       File.expand_path(File.basename(worker_def, '.worker') + '.log', dir)
     end
-    
+
     # Catch any calls to error and set the status fail flags
     def error(*msg)
       opts = msg.extract_options!
       unless msg.flatten.empty?
         @status.fail!
-        msg.unshift("Error encountered in #{worker_def}")
+        # msg.unshift("Error encountered in #{worker_def}")
         super(*msg, opts)
       end
       @status.success?
@@ -58,14 +58,14 @@ module Conveyor
         if @status.success?
           info "Completed #{@filename}, #{@elapsed}s elapsed", :color => :green
         else
-          error "Error(s) encountered in #{@filename}", :color => :red
+          error "Error encountered in #{@worker_def} -> #{@filename}", :color => :red
         end
         send_notifications
       end
     end
-  
+
     protected
-    
+
     def create_dirs_for_cmd(src, dest)
       if src.is_a?(Array) || Array.wrap(src).count > 1 || dest.last == ?/
         mkdir(dest)
@@ -73,34 +73,34 @@ module Conveyor
         mkdir(File.dirname(dest))
       end
     end
-    
+
     def verified_cmd(cmd, src, dest, &block)
       create_dirs_for_cmd(src, dest)
       dest = File.expand_path(dest)
-      
+
       Array.wrap(src).each do |s|
         run "#{cmd} #{s} #{dest}"
         sync
-        
+
         if block_given?
           result = yield(s, dest)
           @status.fail! unless result
         end
       end
     end
-    
+
     def verified_move(src, dest)
       verified_cmd(:mv, src, dest) do |src,dest|
         verify_move(src,dest)
       end
     end
-        
+
     def verified_copy(src, dest)
       verified_cmd(:cp, src, dest) do |src,dest|
         verify_copy(src,dest)
       end
     end
-    
+
     def verify_copy(src, dest)
       if File.directory? dest
         File.exists?(File.join(dest, File.basename(src)))
@@ -108,7 +108,7 @@ module Conveyor
         File.exists?(dest)
       end
     end
-    
+
     def verify_move(src, dest)
       if File.directory? dest
         File.exists?(File.join(dest, File.basename(src))) && !File.exists?(src)

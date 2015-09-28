@@ -16,6 +16,7 @@ require 'fileutils'
 require 'eventmachine'
 require 'em-websocket'
 require "conveyor/version"
+require "mixlib/shellout"
 
 module Conveyor
   extend ActiveSupport::Autoload

@@ -7,3 +7,4 @@ log/*
 .workers
 pkg
 .conveyor
+data_test

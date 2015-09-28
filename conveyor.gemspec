@@ -27,4 +27,5 @@ Gem::Specification.new do |gem|
   gem.add_dependency('rb-readline', '~> 0.5.0')
   gem.add_dependency('eventmachine', '~> 1.0.0')
   gem.add_dependency('em-websocket', '~> 0.5.1')
+  gem.add_dependency('mixlib-shellout', '~> 2.2.1')
 end

@@ -64,7 +64,7 @@ module Conveyor
         info command unless opts[:quiet]
 
         begin
-          cmdrunner = Mixlib::ShellOut.new(command, timeout: Conveyor::Foreman.instance.config[:command_timeout] || 600)
+          cmdrunner = Mixlib::ShellOut.new(command, timeout: opts[:timeout] || Conveyor::Foreman.instance.config[:command_timeout] || 600)
           cmdrunner.run_command()
 
           info cmdrunner.stdout.chomp unless cmdrunner.stdout.chomp.length == 0
@@ -81,9 +81,11 @@ module Conveyor
 
           return !cmdrunner.error!
         rescue Mixlib::ShellOut::CommandTimeout => e
-          error e.class, "Timeout running: #{command}"
+          error e.class, e.message, "Command: #{command}"
+          # raise e unless opts[:ignore_error]
         rescue => e
           error e.class, e.message, e.backtrace.join("\n")
+          # raise e unless opts[:ignore_error]
         end
       end
 
@@ -126,8 +128,8 @@ module Conveyor
 
       # Scp files to destination
       # See: man scp
-      def scp(src, dest)
-        run "scp #{Array.wrap(src).join(' ')} #{dest}"
+      def scp(src, dest, *opts)
+        run "scp #{Array.wrap(src).join(' ')} #{dest}", *opts
       end
     end
   end

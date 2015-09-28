@@ -15,7 +15,7 @@ From source
     git clone https://github.com/gina-alaska/conveyor.git
     cd conveyor
     rake install
- 
+
 Usage
 -----
 
@@ -35,6 +35,43 @@ Todo
 2. Document worker syntax
 3. Finish email notifications
 4. Add additional cli options
+
+Worker Commands
+---------------
+
+#### `run 'COMMAND', [options]`
+
+Runs the specified command in a shell
+
+**Options**
+* quite (boolean) - suppress any output from the command, default: false
+* timeout (seconds) - the command stop execution after give number of seconds, default: 600 (10 minutes)
+
+#### `scp 'FILE', 'DESTINATION', [options]`
+
+SCP the specified file to a remote DESTINATION.  DESTINATION uses the same format as the actual `scp` command.
+
+**Options**
+* quite (boolean) - suppress any output from the command, default: false
+* timeout (seconds) - the command stop execution after give number of seconds, default: 600 (10 minutes)
+
+**WARNING:** You will need to have ssh/scp'd to the host manually once in order to ensure that the host key and ssh keys are available for this command.
+
+#### `copy 'FILE', 'DESTINATION'`
+
+Copy the specified file to DESTINATION.  DESTINATION can be a folder or another filename
+
+### `move 'FILE', 'DESTINATION'`
+
+Move the specified file to DESTINATION.  DESTINATION can be a folder or another filename
+
+#### `delete 'FILE'`
+
+Deletes the specified file
+
+#### `error 'MESSAGE'`, `info 'MESSAGE'`
+
+Print info out to various log files and consoles
 
 License
 -------

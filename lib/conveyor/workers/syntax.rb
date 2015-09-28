@@ -64,7 +64,7 @@ module Conveyor
         info command unless opts[:quiet]
 
         begin
-          cmdrunner = Mixlib::ShellOut.new(command)
+          cmdrunner = Mixlib::ShellOut.new(command, timeout: Conveyor::Foreman.instance.config[:command_timeout] || 600)
           cmdrunner.run_command()
 
           info cmdrunner.stdout.chomp unless cmdrunner.stdout.chomp.length == 0
@@ -80,6 +80,8 @@ module Conveyor
   				end
 
           return !cmdrunner.error!
+        rescue Mixlib::ShellOut::CommandTimeout => e
+          error e.class, "Timeout running: #{command}"
         rescue => e
           error e.class, e.message, e.backtrace.join("\n")
         end

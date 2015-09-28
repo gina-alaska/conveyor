@@ -31,6 +31,7 @@ module Conveyor
         "worker_defs" => File.expand_path('.workers', Dir.pwd),
         "logfile" => File.expand_path('log/conveyor.log', Dir.pwd),
         "threadpool" => 5,
+        "command_timeout" => 600,
         "websocket" => {
           "disabled" => true,
           "host" => "0.0.0.0",

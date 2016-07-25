@@ -8,3 +8,5 @@ log/*
 pkg
 .conveyor
 data_test
+
+habitat/results

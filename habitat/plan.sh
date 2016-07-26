@@ -4,13 +4,14 @@ pkg_origin="uafgina"
 pkg_maintainer="UAF GINA <support+habitat@gina.alaska.edu>"
 pkg_license=('MIT')
 pkg_source="https://github.com/gina-alaska/${pkg_name}/archive/${pkg_version}.tar.gz"
-pkg_shasum="f5a89c713699f5902d0f35939187cfd5c79dbdc728b31dd78a0914c8af5fb0ba"
+pkg_shasum="a16c91077ee1f26e95e789b7812d3640b5b8f51a8cfa6452b049005921c0a09c"
 
 pkg_deps=(
   core/ruby
   core/bundler
   core/gcc-libs
   core/openssl
+  core/libffi
 )
 
 pkg_build_deps=(
@@ -21,6 +22,7 @@ pkg_build_deps=(
   core/gcc
   core/openssl
   core/make
+  core/libffi
 )
 
 pkg_bin_dirs=(bin)

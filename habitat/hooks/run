@@ -1,0 +1,15 @@
+#!/bin/sh
+
+export GEM_HOME="{{pkg.path}}/vendor/bundle/ruby/2.3.0"
+export GEM_PATH="$(hab pkg path core/ruby)/lib/ruby/gems/2.3.0:$(hab pkg path core/bundler):$GEM_HOME"
+export PATH="$PATH:{{pkg.path}}/bin:$(hab pkg path core/bundler)/bin"
+
+#export CONVEYOR_DATA="{{pkg.svc_data_path}}"
+
+cd {{pkg.svc_var_path}}
+
+attach
+
+exec 2>&1
+exec chpst -u hab echo $(pwd)
+exec chpst -u hab {{pkg.path}}/bin/conveyor 

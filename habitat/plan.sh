@@ -34,6 +34,7 @@ do_build() {
 do_install() {
   cp -R . ${pkg_prefix}
 
+
   for binstub in ${pkg_prefix}/bin/*; do
     build_line "Setting shebang for ${binstub} to 'ruby'"
     [[ -f $binstub  ]] && sed -e "s#/usr/bin/env ruby#$(pkg_path_for ruby)/bin/ruby#" -i $binstub

@@ -4,4 +4,7 @@ $LOAD_PATH.unshift(File.join(File.dirname(File.realpath(__FILE__)), "..", "lib")
 require 'rubygems'
 require 'conveyor'
 
+# Ensure STDOUT is flushed
+STDOUT.sync = true
+
 Conveyor.start

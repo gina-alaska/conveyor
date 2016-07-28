@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
-$LOAD_PATH.unshift(File.join(File.dirname(File.realpath(__FILE__)), "..", "lib"))
+$LOAD_PATH.unshift(File.expand_path(File.join(File.dirname(File.realpath(__FILE__)), "..", "lib")))
+
+puts $LOAD_PATH
 
 require 'rubygems'
 require 'conveyor'

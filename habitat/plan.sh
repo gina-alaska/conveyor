@@ -1,10 +1,10 @@
 pkg_name="conveyor"
-pkg_version="1.0.2"
+pkg_version="1.0.3"
 pkg_origin="uafgina"
 pkg_maintainer="UAF GINA <support+habitat@gina.alaska.edu>"
 pkg_license=('MIT')
 pkg_source="https://github.com/gina-alaska/${pkg_name}/archive/${pkg_version}.tar.gz"
-pkg_shasum="a16c91077ee1f26e95e789b7812d3640b5b8f51a8cfa6452b049005921c0a09c"
+pkg_shasum="f7fb864e177f7e9d1bca9728a08c17a32ba5076e80ae9af22025ea18762a399e"
 
 pkg_deps=(
   core/ruby

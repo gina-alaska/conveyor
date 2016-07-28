@@ -1,0 +1,18 @@
+---
+{{~#if cfg.workers_path}}
+worker_defs: {{cfg.workers_path}}
+{{~else}}
+worker_defs: {{pkg.svc_var_path}}/workers
+{{~/if}}
+{{~#if cfg.logfile}}
+logfile: {{cfg.logfile}}
+{{~else}}
+logfile: {{pkg.svc_var_path}}/logs
+{{~/if}}
+threadpool: {{cfg.threadpool}}
+command_timeout: {{cfg.timeout}}
+websocket: 
+  disabled: true
+  host: 0.0.0.0
+  port: 9876
+version: {{pkg.version}}

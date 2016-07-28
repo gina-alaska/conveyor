@@ -1,0 +1,4 @@
+#!/bin/sh
+
+echo "Linking {{pkg.svc_config_path}}/conveyor.yml to {{pkg.svc_var_path}}/.conveyor"
+ln -sf {{pkg.svc_config_path}}/conveyor.yml {{pkg.svc_var_path}}/.conveyor

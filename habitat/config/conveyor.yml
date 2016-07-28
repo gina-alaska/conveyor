@@ -7,7 +7,7 @@ worker_defs: {{pkg.svc_var_path}}/workers
 {{~#if cfg.logfile}}
 logfile: {{cfg.logfile}}
 {{~else}}
-logfile: {{pkg.svc_var_path}}/logs
+logfile: {{pkg.svc_var_path}}/log/conveyor.log
 {{~/if}}
 threadpool: {{cfg.threadpool}}
 command_timeout: {{cfg.timeout}}

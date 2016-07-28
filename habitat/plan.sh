@@ -4,7 +4,7 @@ pkg_origin="uafgina"
 pkg_maintainer="UAF GINA <support+habitat@gina.alaska.edu>"
 pkg_license=('MIT')
 pkg_source="https://github.com/gina-alaska/${pkg_name}/archive/${pkg_version}.tar.gz"
-pkg_shasum="f7fb864e177f7e9d1bca9728a08c17a32ba5076e80ae9af22025ea18762a399e"
+pkg_shasum="327d8469ebb043349cd02c9db5c3fcb9326c243a06ba690bbd212e5a459fff5d"
 
 pkg_deps=(
   core/ruby

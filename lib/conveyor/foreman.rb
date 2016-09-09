@@ -113,6 +113,7 @@ module Conveyor
 
     def any
       '*'
+      /.*/
     end
 
     def notify_list
@@ -137,7 +138,7 @@ module Conveyor
 
     def output_status
       status = @belts.collect { |dir, b| "#{b.name}: #{b.count}" }
-      print "\r#{status.join(', ')}"
+      info status.join(', ')
     end
 
     def check

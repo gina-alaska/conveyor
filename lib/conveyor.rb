@@ -53,9 +53,9 @@ module Conveyor
       fm.info "Press CTRL-C to stop"
       Conveyor::Websocket.start
 
-      EventMachine::PeriodicTimer.new(1) do
-        fm.output_status
-      end
+      # EventMachine::PeriodicTimer.new(30) do
+      #   fm.output_status
+      # end
 
       EventMachine::PeriodicTimer.new(1) do
         fm.check

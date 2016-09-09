@@ -65,9 +65,6 @@ module Conveyor
     def output(msgtype, *msg)
       return false unless should_log?(msgtype)
       Console.write(msgtype, *msg)
-      Logfile.write(logfile, name, msgtype, *msg)
-      Email.write(msgtype, *msg)
-      Channel.instance.write(name, msgtype, *msg)
     end
 
     def send_notifications
